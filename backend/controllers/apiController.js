@@ -126,6 +126,7 @@ async getHourlyChartEA(){
   try{
     await axios.get('http://' + blockchainEA + ':8888/hourlyChart/1111111/').then(res => {
       obj = res.data;  
+      console.log(obj)
     })
   }catch(err){
       console.log('Api getHourlyChart reguest error!>>',err);

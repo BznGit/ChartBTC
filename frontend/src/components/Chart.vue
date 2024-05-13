@@ -1,20 +1,15 @@
 
 <template>
-  <Line :data="chartData" :options="chartOptions"/>
+  <LineChart :chartData="chartData" :options="chartOptions"/>
  </template>
  <script setup>
-   import { Line } from 'vue-chartjs';
+  import { LineChart } from "vue-chart-3";
+  import { Chart, registerables } from "chart.js";
+
    import { ref,  computed, watch, onUpdated } from 'vue';
    import 'chartjs-adapter-date-fns';
-   import { Chart as ChartJS,
-     CategoryScale,
-     LinearScale,
-     PointElement,
-     LineElement,
-     Title,
-     Tooltip,
-     TimeScale,
-     Legend } from 'chart.js'
+   import 'chartjs-plugin-dragdata'
+
   
    const plugin = {
      id: 'verticalLiner',
@@ -47,38 +42,64 @@
          ctx.restore()
      }
    }
+   Chart.register(plugin, ...registerables);
    const props = defineProps({
      idChart: Number,
      from: String, 
      data: Object,
      koef: String
    })
-   ChartJS.register(
-     CategoryScale,
-     LinearScale,
-     PointElement,
-     LineElement,
-     Title,
-     Tooltip,
-     Legend, 
-     TimeScale, 
-     plugin, 
-   )
  
   let chartOptions = computed(()=>{
     return {
-     maintainAspectRatio: false,
+      dragData: true,
+      maintainAspectRatio: false,
      
      interaction: {
        mode: 'index',
        intersect: false,
      },
-     plugins: {  
-       plugin: {
-         line:{
-           dash: [1, 2],
+     plugins: { 
+      dragData: {
+          round: 0, // rounds the values to n decimal places
+          // in this case 1, e.g 0.1234 => 0.1)
+          showTooltip: true, // show the tooltip while dragging [default = true]
+          // dragX: true // also enable dragging along the x-axis.
+          // this solely works for continous, numerical x-axis scales (no categories or dates)!
+          onDragStart: function (e, element) {
+            console.log("drag start!");
+            /*
+          // e = event, element = datapoint that was dragged
+          // you may use this callback to prohibit dragging certain datapoints
+          // by returning false in this callback
+          if (element.datasetIndex === 0 && element.index === 0) {
+            // this would prohibit dragging the first datapoint in the first
+            // dataset entirely
+            return false
+          }
+          */
+          },
+          onDrag: function (e, datasetIndex, index, value) {
+            console.log("drag!");
+            /*     
+          // you may control the range in which datapoints are allowed to be
+          // dragged by returning `false` in this callback
+          if (value < 0) return false // this only allows positive values
+          if (datasetIndex === 0 && index === 0 && value > 20) return false 
+          */
+          },
+          onDragEnd: function (e, datasetIndex, index, value) {
+            console.log("drag end!");
+            // you may use this callback to store the final datapoint value
+            // (after dragging) in a database, or update other UI elements that
+            // dependent on it
+          },
+        },
+        plugin: {
+          line:{
+           dash: [ 1, 2 ],
            color: 'blue',
-           width: 1
+           width: 2
          }
        },
        legend: {
@@ -102,12 +123,12 @@
            }
          }
        }
-     },
+     }, 
      scales: {
        x: {
          type: 'time',       
          time: {
-           unit: 'minute',
+           unit: 'month',
            displayFormats: {
              minute:'HH:mm',
              hour: 'HH:mm',
@@ -128,7 +149,6 @@
  
  const chartData = computed(()=>{
  
-     
      return {
      datasets: [
        {
@@ -136,10 +156,10 @@
          borderColor: '#0068dd',
          backgroundColor: '#0068dd',
          cubicInterpolationMode: 'monotone',
-         pointRadius:0,
+         pointRadius: 3,
          yAxisID: 'left-y-axis',
          hidden: false,
-         data: props.data
+         data: [{x: new Date(2023, 10), y: 11}, {x: new Date(2023, 11), y: 15}, {x: new Date(2024, 0), y: 15}]//props.data
        }
      ] 
    }
