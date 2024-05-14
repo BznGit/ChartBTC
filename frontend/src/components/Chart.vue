@@ -1,16 +1,24 @@
 
 <template>
-  <LineChart :chartData="chartData" :options="chartOptions"/>
+  <LineChart ref="lineRef":chartData="chartData" :options="chartOptions"/>
  </template>
  <script setup>
   import { LineChart } from "vue-chart-3";
   import { Chart, registerables } from "chart.js";
 
-   import { ref,  computed, watch, onUpdated } from 'vue';
-   import 'chartjs-adapter-date-fns';
-   import 'chartjs-plugin-dragdata'
-
-  
+  import { ref,  onMounted, computed, watch, onUpdated } from 'vue';
+  import 'chartjs-adapter-date-fns';
+  import 'chartjs-plugin-dragdata'
+  const lineRef = ref()
+  onMounted(() => {
+      console.log(lineRef.value.chartInstance);
+      lineRef.value.chartInstance.toBase64Image();
+      
+    });
+    function handleChartRender(chart) {
+      console.log(chart);
+    }
+    handleChartRender
    const plugin = {
      id: 'verticalLiner',
      afterInit: (chart, args, opts) => {
@@ -27,6 +35,7 @@
          const {ctx } = chart
          const {top, bottom, left, right} = chart.chartArea
          const {tooltip} = args
+         console.log('>>', )
          const x = tooltip?.caretX
          const y = tooltip?.caretY
          if (!x) return
@@ -59,6 +68,18 @@
        mode: 'index',
        intersect: false,
      },
+     hover: {
+            intersect: false,
+            mode: 'dataset',
+        },
+        onHover: function(e) {
+      
+            const point = e.chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false)
+            if (point.length) e.native.target.style.cursor = 'grab'
+            else e.native.target.style.cursor = 'default'
+
+
+          },
      plugins: { 
       dragData: {
           round: 0, // rounds the values to n decimal places
@@ -95,6 +116,7 @@
             // dependent on it
           },
         },
+
         plugin: {
           line:{
            dash: [ 1, 2 ],
@@ -159,12 +181,15 @@
          pointRadius: 3,
          yAxisID: 'left-y-axis',
          hidden: false,
+         dragData: true,
+         pointHoverRadius: 4,
+         spanGaps: true,
          data: [{x: new Date(2023, 10), y: 11}, {x: new Date(2023, 11), y: 15}, {x: new Date(2024, 0), y: 15}]//props.data
        }
      ] 
    }
  })
- 
+
   
  </script>
 
