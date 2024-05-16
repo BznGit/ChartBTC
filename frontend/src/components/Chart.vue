@@ -1,6 +1,6 @@
 
 <template>
-  <LineChart ref="lineRef" :chartData="chartData" :options="chartOptions"  @mousemove="move" />
+  <LineChart ref="lineRef" :chartData="chartData" :options="chartOptions"  />
  </template>
  <script setup>
   import { LineChart } from "vue-chart-3";
@@ -11,23 +11,21 @@
   import 'chartjs-plugin-dragdata'
   const lineRef = ref()
 
-  onMounted(() => {
+ /* onMounted(() => {
     console.log(lineRef.value.chartInstance);
     lineRef.value.chartInstance.toBase64Image();
     const chart = lineRef.value.chartInstance
     console.log(chart)
     const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = chart;
-  
+     
 
-    
-
-  });
+  });*/
   function move(e) {
+ 
     const chart = lineRef.value.chartInstance
-     const {ctx } = chart
+     const { ctx } = chart
       const {top, bottom, left, right} = chart.chartArea
-     // const {tooltip} = args
-      console.log('>>',e )
+
       const x = e.layerX
       const y =e.layerY
       if (!x) return
@@ -41,13 +39,40 @@
       ctx.lineTo(right, y)
       ctx.stroke()
       ctx.restore()
+      ctx.save()
     
   }
 
   function handleChartRender(chart) {
     console.log(chart);
   }
-  handleChartRender
+  const plugin1 = {
+    id: 'dottedLine',
+    afterDatasetsDraw: (chart, args, pluginOptions) => {
+      const {ctx, data, chartArea: {left, right, width}, scales: {x, leftyaxis}} = chart;
+      console.log(leftyaxis)
+      const startingPoint = chartData.value.datasets[0].data[0].y
+      ctx.save();
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      ctx.setLineDash([1, 5]);
+      ctx.strokeStyle = '#ff0000';
+      ctx.moveTo(left, leftyaxis.getPixelForValue(startingPoint));
+      ctx.lineTo(right, leftyaxis.getPixelForValue(startingPoint));
+      ctx.stroke();
+      ctx.closePath();
+      ctx.setLineDash([])
+
+      ctx.beginPath();
+      ctx.fillStyle = 'grey'
+      ctx.fillRect(0, leftyaxis.getPixelForValue(startingPoint), left, 10)
+      ctx.closePath();
+    },
+    
+    defaults: {
+        color: 'lightGreen'
+    }
+}
   const plugin = {
     id: 'verticalLiner',
     afterInit: (chart, args, opts) => {
@@ -81,7 +106,7 @@
       ctx.restore()
     }
   }
-   Chart.register( ...registerables);
+   Chart.register(plugin1, ...registerables);
    const props = defineProps({
      idChart: Number,
      from: String, 
@@ -111,6 +136,7 @@
 
           },
      plugins: { 
+
       dragData: {
           round: 0, // rounds the values to n decimal places
           // in this case 1, e.g 0.1234 => 0.1)
@@ -182,7 +208,7 @@
            }
          },
        },
-       'left-y-axis': {
+       'leftyaxis': {
          type: 'linear',
          position: 'left',
          title: {text:"-",display: true},
@@ -202,7 +228,7 @@
          backgroundColor: '#0068dd',
          cubicInterpolationMode: 'monotone',
          pointRadius: 3,
-         yAxisID: 'left-y-axis',
+         yAxisID: 'leftyaxis',
          hidden: false,
          dragData: true,
          pointHoverRadius: 4,
