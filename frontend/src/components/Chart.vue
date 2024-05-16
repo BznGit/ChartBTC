@@ -1,57 +1,87 @@
 
 <template>
-  <LineChart ref="lineRef":chartData="chartData" :options="chartOptions"/>
+  <LineChart ref="lineRef" :chartData="chartData" :options="chartOptions"  @mousemove="move" />
  </template>
  <script setup>
   import { LineChart } from "vue-chart-3";
   import { Chart, registerables } from "chart.js";
 
-  import { ref,  onMounted, computed, watch, onUpdated } from 'vue';
+  import { ref,  onMounted, computed, watch, onUpdated, defineCustomElement } from 'vue';
   import 'chartjs-adapter-date-fns';
   import 'chartjs-plugin-dragdata'
   const lineRef = ref()
+
   onMounted(() => {
-      console.log(lineRef.value.chartInstance);
-      lineRef.value.chartInstance.toBase64Image();
-      
-    });
-    function handleChartRender(chart) {
-      console.log(chart);
+    console.log(lineRef.value.chartInstance);
+    lineRef.value.chartInstance.toBase64Image();
+    const chart = lineRef.value.chartInstance
+    console.log(chart)
+    const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = chart;
+  
+
+    
+
+  });
+  function move(e) {
+    const chart = lineRef.value.chartInstance
+     const {ctx } = chart
+      const {top, bottom, left, right} = chart.chartArea
+     // const {tooltip} = args
+      console.log('>>',e )
+      const x = e.layerX
+      const y =e.layerY
+      if (!x) return
+      ctx.save()
+      ctx.beginPath()
+      ctx.setLineDash([5, 3])
+      ctx.strokeStyle = '#ff0000';
+      ctx.moveTo(x, top)
+      ctx.lineTo(x, bottom)
+      ctx.moveTo(left, y)
+      ctx.lineTo(right, y)
+      ctx.stroke()
+      ctx.restore()
+    
+  }
+
+  function handleChartRender(chart) {
+    console.log(chart);
+  }
+  handleChartRender
+  const plugin = {
+    id: 'verticalLiner',
+    afterInit: (chart, args, opts) => {
+      chart.verticalLiner = {}
+    },
+    afterEvent: (chart, args, options) => {
+      const {inChartArea} = args
+      chart.verticalLiner = {draw: inChartArea}
+    },
+    beforeTooltipDraw: (chart, args, options) => {
+   
+      const {draw} = chart.verticalLiner
+      if (!draw) return
+
+      const {ctx } = chart
+      const {top, bottom, left, right} = chart.chartArea
+      const {tooltip} = args
+      console.log('>>', )
+      const x = tooltip?.caretX
+      const y = tooltip?.caretY
+      if (!x) return
+      ctx.save()
+      ctx.beginPath()
+      ctx.setLineDash([5, 3])
+      ctx.strokeStyle = '#ff0000';
+      ctx.moveTo(x, top)
+      ctx.lineTo(x, bottom)
+      ctx.moveTo(left, y)
+      ctx.lineTo(right, y)
+      ctx.stroke()
+      ctx.restore()
     }
-    handleChartRender
-   const plugin = {
-     id: 'verticalLiner',
-     afterInit: (chart, args, opts) => {
-       chart.verticalLiner = {}
-     },
-     afterEvent: (chart, args, options) => {
-         const {inChartArea} = args
-         chart.verticalLiner = {draw: inChartArea}
-     },
-     beforeTooltipDraw: (chart, args, options) => {
-         const {draw} = chart.verticalLiner
-         if (!draw) return
- 
-         const {ctx } = chart
-         const {top, bottom, left, right} = chart.chartArea
-         const {tooltip} = args
-         console.log('>>', )
-         const x = tooltip?.caretX
-         const y = tooltip?.caretY
-         if (!x) return
-         ctx.save()
-         ctx.beginPath()
-         ctx.setLineDash([5, 3])
-         ctx.strokeStyle = '#ff0000';
-         ctx.moveTo(x, top)
-         ctx.lineTo(x, bottom)
-         ctx.moveTo(left, y)
-         ctx.lineTo(right, y)
-         ctx.stroke()
-         ctx.restore()
-     }
-   }
-   Chart.register(plugin, ...registerables);
+  }
+   Chart.register( ...registerables);
    const props = defineProps({
      idChart: Number,
      from: String, 
@@ -117,13 +147,6 @@
           },
         },
 
-        plugin: {
-          line:{
-           dash: [ 1, 2 ],
-           color: 'blue',
-           width: 2
-         }
-       },
        legend: {
          display:true,
          labels: {
