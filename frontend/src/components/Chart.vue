@@ -9,6 +9,7 @@
   import { ref,  onMounted, computed, watch, onUpdated, defineCustomElement } from 'vue';
   import 'chartjs-adapter-date-fns';
   import 'chartjs-plugin-dragdata'
+
   const lineRef = ref()
 
  /* onMounted(() => {
@@ -20,57 +21,113 @@
      
 
   });*/
-  function move(e) {
- 
-    const chart = lineRef.value.chartInstance
-     const { ctx } = chart
-      const {top, bottom, left, right} = chart.chartArea
 
-      const x = e.layerX
-      const y =e.layerY
-      if (!x) return
-      ctx.save()
-      ctx.beginPath()
-      ctx.setLineDash([5, 3])
-      ctx.strokeStyle = '#ff0000';
-      ctx.moveTo(x, top)
-      ctx.lineTo(x, bottom)
-      ctx.moveTo(left, y)
-      ctx.lineTo(right, y)
-      ctx.stroke()
-      ctx.restore()
-      ctx.save()
-    
-  }
-
-  function handleChartRender(chart) {
-    console.log(chart);
-  }
-  const plugin1 = {
-    id: 'dottedLine',
-    afterDatasetsDraw: (chart, args, pluginOptions) => {
-      const {ctx, data, chartArea: {left, right, width}, scales: {x, leftyaxis}} = chart;
-      console.log(leftyaxis)
-      const startingPoint = chartData.value.datasets[0].data[0].y
-      ctx.save();
-      ctx.beginPath();
-      ctx.lineWidth = 1;
-      ctx.setLineDash([1, 5]);
-      ctx.strokeStyle = '#ff0000';
-      ctx.moveTo(left, leftyaxis.getPixelForValue(startingPoint));
-      ctx.lineTo(right, leftyaxis.getPixelForValue(startingPoint));
-      ctx.stroke();
-      ctx.closePath();
-      ctx.setLineDash([])
-
-      ctx.beginPath();
-      ctx.fillStyle = 'grey'
-      ctx.fillRect(0, leftyaxis.getPixelForValue(startingPoint), left, 10)
-      ctx.closePath();
+  let rectangelXY;
+  const rectangel = {
+    id: 'rectangel',
+    // drawing part
+    afterDatasetsDraw: (chart, args, plugins) => {
+      const {ctx, chartArea:  {left, right, top, bottom}, scales: {x, leftyaxis}}  = chart;
+      if(rectangelXY){
+        ctx.save();
+        ctx.fillStyle = 'rgba(237, 171, 109, 0.4)';
+        console.log('rec>',rectangelXY)
+        let width = rectangelXY.startX - rectangelXY.endX
+        let height = rectangelXY.startY - rectangelXY.endY
+        console.log('rec>',width, height)
+        ctx.fillRect(rectangelXY.startX - width, rectangelXY.startY - height, width, height);
+       
+      }
     },
-    
-    defaults: {
-        color: 'lightGreen'
+    afterInit: (chart, args, plugins) => {
+      const {ctx, canvas }  = chart; 
+   
+      let mouseDown = false;
+      canvas.onmousedown = (e) => {
+        console.log(e)
+        mouseDown = true;
+        rectangelXY = 
+          {
+            startX: e.offsetX,
+            startY: e.offsetY,
+            endX:  e.offsetX,
+            endY:  e.offsetY,
+          }
+          args.changed = true;
+      }; 
+      canvas.onmouseup = (e)=>{
+        mouseDown = false;
+        rectangelXY.startX = 0
+        rectangelXY.startY = 0
+        rectangelXY.endX = 0
+        rectangelXY.endY = 0
+     
+        e.preventDefault()
+      }
+      canvas.onmousemove  = (e)=>{
+        if(!mouseDown) return
+        rectangelXY.endX = e.offsetX,
+        rectangelXY.endY = e.offsetY
+        console.log(rectangelXY)
+      }
+    }
+  }
+  let crosshair;
+  const crosshairLabel = {
+    id: 'crosshairLabel',
+    // drawing part
+    afterDatasetsDraw: (chart, args, plugins) => {
+      const {ctx, chartArea:  {left, right, top, bottom}, scales: {x, leftyaxis}}  = chart;   
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'grey';
+      ctx.setLineDash([5, 3])
+      if(crosshair){
+        ctx.save();
+        ctx.beginPath()
+        crosshair.forEach((line, index)=>{
+          ctx.moveTo(line.startX, line.startY);
+          ctx.lineTo(line.endX, line.endY);
+          ctx.stroke();
+        })
+        ctx.fillStyle = 'grey'
+        ctx.fillRect(0, crosshair[0].startY - 10, left, 20);
+        ctx.fillRect(crosshair[1].startX - 50, bottom, 100, 20);
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'white';
+        ctx.fillText(leftyaxis.getValueForPixel(crosshair[0].startY).toFixed(2), left / 2, crosshair[0].startY)
+        ctx.fillText(new Date(x.getValueForPixel(crosshair[1].startX)).toDateString(), crosshair[1].startX, bottom + 10)
+      }
+    },
+    // mouse move
+    afterEvent(chart, args){
+      const {ctx, chartArea:  {left, right, top, bottom} }  = chart;
+      const xCoor = args.event.x;
+      const yCoor = args.event.y
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'grey';
+
+      if(!args.inChartArea && crosshair){
+        crosshair = undefined;
+        args.changed = true;
+      } else if(args.inChartArea){
+        crosshair = [
+          {
+            startX: left,
+            startY: yCoor,
+            endX: right,
+            endY: yCoor,
+          },
+          {
+            startX: xCoor,
+            startY: top,
+            endX: xCoor,
+            endY: bottom,
+          },
+        ];
+        args.changed = true;
+      }      
     }
 }
   const plugin = {
@@ -106,7 +163,8 @@
       ctx.restore()
     }
   }
-   Chart.register(plugin1, ...registerables);
+   Chart.register(crosshairLabel, rectangel, ...registerables);
+
    const props = defineProps({
      idChart: Number,
      from: String, 
