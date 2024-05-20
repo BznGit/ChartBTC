@@ -1,27 +1,57 @@
 
 <template>
   <LineChart ref="lineRef" :chartData="chartData" :options="chartOptions"  />
+  <input type="number" :value="0" @input="setHightlightHashrate">
  </template>
  <script setup>
   import { LineChart } from "vue-chart-3";
   import { Chart, registerables } from "chart.js";
-
-  import { ref,  onMounted, computed, watch, onUpdated, defineCustomElement } from 'vue';
+  import { ref, reactive,   onMounted, computed, watch, onUpdated, defineCustomElement } from 'vue';
   import 'chartjs-adapter-date-fns';
   import 'chartjs-plugin-dragdata'
 
   const lineRef = ref()
-
- /* onMounted(() => {
-    console.log(lineRef.value.chartInstance);
+ 
+  onMounted(() => {
     lineRef.value.chartInstance.toBase64Image();
-    const chart = lineRef.value.chartInstance
-    console.log(chart)
-    const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = chart;
-     
+    let chart = lineRef.value.chartInstance
+    const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = chart; 
 
-  });*/
+  });
 
+  function setHightlightHashrate(event){
+    console.log(event.target.value)
+    if(highlighArrIndex.length==0) return
+    let chart = lineRef.value.chartInstance
+    highlighArrIndex.forEach(index=>{
+      chart.data.datasets[0].data[index].y = event.target.value
+
+  })
+  chart.update()  
+  }
+  let highlighArrIndex = [];
+function highlightDatasetsPoints(setData){
+  let chart = lineRef.value.chartInstance
+  console.log(chart.data.datasets[0].data[0].x)
+  console.log(chart.options.scales.leftyaxis.min)
+
+  
+  chart.data.datasets[0].data.forEach((item, index)=>{
+    console.log(+item.x, index)
+    if(+setData.startX < +item.x &&  +item.x < +setData.endX) highlighArrIndex.push(index)
+    console.log(highlighArrIndex)
+  })
+  
+  highlighArrIndex.forEach(index=>{
+    chart.data.datasets[0].pointBorderColor[index] = 'red'
+    chart.data.datasets[0].backgroundColor[index] = 'red'
+  })
+
+
+   chart.update()  
+}
+
+  let setData;
   let rectangelXY;
   const rectangel = {
     id: 'rectangel',
@@ -31,21 +61,33 @@
       if(rectangelXY){
         ctx.save();
         ctx.fillStyle = 'rgba(237, 171, 109, 0.4)';
-        console.log('rec>',rectangelXY)
+           
         let width = rectangelXY.startX - rectangelXY.endX
         let height = rectangelXY.startY - rectangelXY.endY
-        console.log('rec>',width, height)
+       
+        setData = {
+          startX: x.getValueForPixel(rectangelXY.startX),
+          startY: leftyaxis.getValueForPixel(rectangelXY.startY),
+          endX:   x.getValueForPixel(rectangelXY.endX),
+          endY:   leftyaxis.getValueForPixel(rectangelXY.endY)
+        }
         ctx.fillRect(rectangelXY.startX - width, rectangelXY.startY - height, width, height);
        
       }
     },
+
     afterInit: (chart, args, plugins) => {
-      const {ctx, canvas }  = chart; 
-   
+      const {ctx, canvas,  scales: {x, leftyaxis}}  = chart; 
+      
+      canvas.oncontextmenu = (e) =>{ 
+          e.preventDefault();
+      };
+
       let mouseDown = false;
       canvas.onmousedown = (e) => {
-        console.log(e)
+      
         mouseDown = true;
+
         rectangelXY = 
           {
             startX: e.offsetX,
@@ -57,18 +99,20 @@
       }; 
       canvas.onmouseup = (e)=>{
         mouseDown = false;
+        //data.value[0].y = setData.endY
+        highlightDatasetsPoints(setData)
         rectangelXY.startX = 0
         rectangelXY.startY = 0
         rectangelXY.endX = 0
         rectangelXY.endY = 0
-     
+        
         e.preventDefault()
       }
       canvas.onmousemove  = (e)=>{
         if(!mouseDown) return
         rectangelXY.endX = e.offsetX,
         rectangelXY.endY = e.offsetY
-        console.log(rectangelXY)
+    
       }
     }
   }
@@ -202,7 +246,7 @@
           // dragX: true // also enable dragging along the x-axis.
           // this solely works for continous, numerical x-axis scales (no categories or dates)!
           onDragStart: function (e, element) {
-            console.log("drag start!");
+      //      console.log("drag start!", element);
             /*
           // e = event, element = datapoint that was dragged
           // you may use this callback to prohibit dragging certain datapoints
@@ -215,7 +259,7 @@
           */
           },
           onDrag: function (e, datasetIndex, index, value) {
-            console.log("drag!");
+        //    console.log("drag!", datasetIndex, index, value);
             /*     
           // you may control the range in which datapoints are allowed to be
           // dragged by returning `false` in this callback
@@ -224,7 +268,7 @@
           */
           },
           onDragEnd: function (e, datasetIndex, index, value) {
-            console.log("drag end!");
+        //    console.log("drag end!");
             // you may use this callback to store the final datapoint value
             // (after dragging) in a database, or update other UI elements that
             // dependent on it
@@ -275,12 +319,14 @@
      }  
    }   
  })
- 
- const chartData = computed(()=>{
- 
-     return {
-     datasets: [
-       {
+let data =  [
+  {x: new Date(2023, 10), y: 11},
+  {x: new Date(2023, 11), y: 12}, 
+  {x: new Date(2024, 0),  y: 6 },
+  {x: new Date(2024, 1),  y: 7 }, 
+  {x: new Date(2024, 2),  y: 9 }, 
+]
+let dataset1 =  ref( {
          label:"Hashrate",
          borderColor: '#0068dd',
          backgroundColor: '#0068dd',
@@ -291,8 +337,16 @@
          dragData: true,
          pointHoverRadius: 4,
          spanGaps: true,
-         data: [{x: new Date(2023, 10), y: 11}, {x: new Date(2023, 11), y: 15}, {x: new Date(2024, 0), y: 15}]//props.data
-       }
+         data: data,
+         backgroundColor: ['green', 'green','green'],
+         pointBorderColor: ['green','green','green']
+       })
+
+ const chartData = computed(()=>{
+ 
+     return {
+     datasets: [
+     dataset1.value
      ] 
    }
  })
