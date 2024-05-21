@@ -38,7 +38,9 @@ function highlightDatasetsPoints(setData){
   
   chart.data.datasets[0].data.forEach((item, index)=>{
     console.log(+item.x, index)
-    if(+setData.startX < +item.x &&  +item.x < +setData.endX) highlighArrIndex.push(index)
+    if((+setData.startX < +item.x &&  +item.x < +setData.endX) ||
+       (+setData.startX > +item.x &&  +item.x > +setData.endX))
+     highlighArrIndex.push(index)
     console.log(highlighArrIndex)
   })
   
@@ -79,6 +81,21 @@ function highlightDatasetsPoints(setData){
     afterInit: (chart, args, plugins) => {
       const {ctx, canvas,  scales: {x, leftyaxis}}  = chart; 
       
+      canvas.onclick = (e) =>{ 
+          console.log('clivk')
+
+          if(highlighArrIndex.length!=0){
+           
+            highlighArrIndex.forEach(index=>{
+              chart.data.datasets[0].pointBorderColor[index] = 'blue'
+              chart.data.datasets[0].backgroundColor[index] = 'blue'
+              
+              highlighArrIndex = []
+            })
+            console.log(chart)
+            chart.update()
+          }
+      };
       canvas.oncontextmenu = (e) =>{ 
           e.preventDefault();
       };
@@ -259,6 +276,25 @@ function highlightDatasetsPoints(setData){
           */
           },
           onDrag: function (e, datasetIndex, index, value) {
+            if (highlighArrIndex.length!=0){
+              let chart = lineRef.value.chartInstance;
+              console.log('index',index, value)
+              let point = +value.x
+              let left = +chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x;
+              let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
+              console.log(left, '{', point,'}',right)
+              if((left <= point &&  point <= right) ||
+              (left >= point &&  point >= right)){
+                console.log(point)
+                highlighArrIndex.forEach(index1=>{
+                  chart.data.datasets[datasetIndex].data[index1].y = value.y
+                  console.log(+chart.data.datasets[datasetIndex].data[index1].x, '>>', value.y)
+                })
+                chart.update()
+              }
+            }
+       
+              
         //    console.log("drag!", datasetIndex, index, value);
             /*     
           // you may control the range in which datapoints are allowed to be
@@ -338,8 +374,8 @@ let dataset1 =  ref( {
          pointHoverRadius: 4,
          spanGaps: true,
          data: data,
-         backgroundColor: ['green', 'green','green'],
-         pointBorderColor: ['green','green','green']
+         backgroundColor: ['blue', 'blue','blue','blue','blue'],
+         pointBorderColor: ['blue','blue','blue', 'blue','blue']
        })
 
  const chartData = computed(()=>{
