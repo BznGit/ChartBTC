@@ -1,21 +1,27 @@
 
 <template>
+    <input type="number"  @input="setHightlightHashrate" v-model="hightlightHashrate">
   <LineChart ref="lineRef" :chartData="chartData" :options="chartOptions"  />
-  <input type="number" :value="0" @input="setHightlightHashrate">
- </template>
+
+</template>
  <script setup>
   import { LineChart } from "vue-chart-3";
   import { Chart, registerables } from "chart.js";
   import { ref, reactive,   onMounted, computed, watch, onUpdated, defineCustomElement } from 'vue';
   import 'chartjs-adapter-date-fns';
   import 'chartjs-plugin-dragdata'
+  import zoomPlugin from 'chartjs-plugin-zoom';
 
+  const props = defineProps({
+     idChart: Number,
+     from: String, 
+     data: Object,
+     koef: String
+   })
   const lineRef = ref()
- 
+  const hightlightHashrate = ref() 
+
   onMounted(() => {
-    lineRef.value.chartInstance.toBase64Image();
-    let chart = lineRef.value.chartInstance
-    const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = chart; 
 
   });
 
@@ -25,31 +31,23 @@
     let chart = lineRef.value.chartInstance
     highlighArrIndex.forEach(index=>{
       chart.data.datasets[0].data[index].y = event.target.value
-
   })
   chart.update()  
   }
   let highlighArrIndex = [];
-function highlightDatasetsPoints(setData){
-  let chart = lineRef.value.chartInstance
-  console.log(chart.data.datasets[0].data[0].x)
-  console.log(chart.options.scales.leftyaxis.min)
-
-  
-  chart.data.datasets[0].data.forEach((item, index)=>{
-    console.log(+item.x, index)
-    if((+setData.startX < +item.x &&  +item.x < +setData.endX) ||
-       (+setData.startX > +item.x &&  +item.x > +setData.endX))
-     highlighArrIndex.push(index)
-    console.log(highlighArrIndex)
-  })
-  
-  highlighArrIndex.forEach(index=>{
-    chart.data.datasets[0].pointBorderColor[index] = 'red'
-    chart.data.datasets[0].backgroundColor[index] = 'red'
-  })
-
-
+  function highlightDatasetsPoints(setData){
+    let chart = lineRef.value.chartInstance
+    chart.data.datasets[0].data.forEach((item, index)=>{
+      console.log(+item.x, index)
+      if(((+setData.startX < +item.x &&  +item.x < +setData.endX) || (+setData.startX > +item.x &&  +item.x > +setData.endX))
+      && ((+setData.startY < +item.y &&  +item.y < +setData.endY) || (+setData.startY > +item.y &&  +item.y > +setData.endY)))
+        highlighArrIndex.push(index)
+    })
+    
+    highlighArrIndex.forEach(index=>{
+      chart.data.datasets[0].pointBorderColor[index] = 'red'
+      chart.data.datasets[0].backgroundColor[index] = 'red'
+    })
    chart.update()  
 }
 
@@ -224,15 +222,8 @@ function highlightDatasetsPoints(setData){
       ctx.restore()
     }
   }
-   Chart.register(crosshairLabel, rectangel, ...registerables);
 
-   const props = defineProps({
-     idChart: Number,
-     from: String, 
-     data: Object,
-     koef: String
-   })
- 
+  Chart.register(crosshairLabel, rectangel, zoomPlugin, ...registerables);
   let chartOptions = computed(()=>{
     return {
       dragData: true,
@@ -247,72 +238,66 @@ function highlightDatasetsPoints(setData){
             mode: 'dataset',
         },
         onHover: function(e) {
-      
             const point = e.chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false)
             if (point.length) e.native.target.style.cursor = 'grab'
             else e.native.target.style.cursor = 'default'
 
-
           },
-     plugins: { 
+     plugins: {
 
+      zoom: {
+        zoom: {
+          pan: {
+              enabled: true,
+              mode: 'x',     
+          },
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true
+          },
+          mode: 'xy',
+        }
+      }, 
       dragData: {
+   
           round: 0, // rounds the values to n decimal places
           // in this case 1, e.g 0.1234 => 0.1)
-          showTooltip: true, // show the tooltip while dragging [default = true]
+          showTooltip: false, // show the tooltip while dragging [default = true]
           // dragX: true // also enable dragging along the x-axis.
           // this solely works for continous, numerical x-axis scales (no categories or dates)!
-          onDragStart: function (e, element) {
-      //      console.log("drag start!", element);
-            /*
-          // e = event, element = datapoint that was dragged
-          // you may use this callback to prohibit dragging certain datapoints
-          // by returning false in this callback
-          if (element.datasetIndex === 0 && element.index === 0) {
-            // this would prohibit dragging the first datapoint in the first
-            // dataset entirely
-            return false
-          }
-          */
+          onDragStart: function (e, datasetIndex, index, value) {
+            highlighArrIndex.push(index)
+            hightlightHashrate.value = value.y
+            let chart = lineRef.value.chartInstance;
+            chart.data.datasets[datasetIndex].pointBorderColor[index] = 'red'
+            chart.data.datasets[datasetIndex].backgroundColor[index] = 'red'
+            chart.update()
           },
           onDrag: function (e, datasetIndex, index, value) {
+            hightlightHashrate.value = value.y
             if (highlighArrIndex.length!=0){
               let chart = lineRef.value.chartInstance;
-              console.log('index',index, value)
               let point = +value.x
               let left = +chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x;
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
-              console.log(left, '{', point,'}',right)
-              if((left <= point &&  point <= right) ||
-              (left >= point &&  point >= right)){
-                console.log(point)
-                highlighArrIndex.forEach(index1=>{
+              if((left <= point &&  point <= right) || (left >= point &&  point >= right)){
+                hightlightHashrate.value = value.y
+                  highlighArrIndex.forEach(index1=>{
                   chart.data.datasets[datasetIndex].data[index1].y = value.y
-                  console.log(+chart.data.datasets[datasetIndex].data[index1].x, '>>', value.y)
                 })
                 chart.update()
               }
             }
-       
-              
-        //    console.log("drag!", datasetIndex, index, value);
-            /*     
-          // you may control the range in which datapoints are allowed to be
-          // dragged by returning `false` in this callback
-          if (value < 0) return false // this only allows positive values
-          if (datasetIndex === 0 && index === 0 && value > 20) return false 
-          */
           },
           onDragEnd: function (e, datasetIndex, index, value) {
-        //    console.log("drag end!");
-            // you may use this callback to store the final datapoint value
-            // (after dragging) in a database, or update other UI elements that
-            // dependent on it
+
           },
         },
 
        legend: {
-         display:true,
+         display:false,
          labels: {
            display:true,
            usePointStyle: false,
@@ -378,17 +363,20 @@ let dataset1 =  ref( {
          pointBorderColor: ['blue','blue','blue', 'blue','blue']
        })
 
- const chartData = computed(()=>{
- 
-     return {
-     datasets: [
-     dataset1.value
-     ] 
-   }
- })
+  const chartData = computed(()=>{
+      return {
+      datasets: [
+      dataset1.value
+      ] 
+    }
+  })
 
-  
- </script>
+</script>
+<style scoped>
+.smallChart{
+  height: 100px;
+}
+</style>
 
  
  <!-- Add "scoped" attribute to limit CSS to this component only -->
