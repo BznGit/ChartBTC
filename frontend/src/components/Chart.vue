@@ -20,6 +20,7 @@
    })
   const lineRef = ref()
   const hightlightHashrate = ref() 
+  const emit = defineEmits(['onzoom' ])
 
   onMounted(() => {
 
@@ -247,6 +248,13 @@
 
       zoom: {
         zoom: {
+          onZoom: ()=>{
+            let chart = lineRef.value.chartInstance;
+            let min = chart.scales.x.min;
+            let max = chart.scales.x.max;
+            console.log(min, max)
+            emit('onzoom', min, max )
+          },
           pan: {
               enabled: true,
               mode: 'x',     

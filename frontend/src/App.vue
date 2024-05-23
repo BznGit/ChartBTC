@@ -6,7 +6,7 @@ import SmallChart from './components/SmallChart.vue'
 <template>
 <div class="chart">
   <Chart />
-  <SmallChart />
+  <SmallChart @onzoom="onZoom"/>
 </div>
  
 </template>

@@ -17,22 +17,18 @@
      data: Object,
      koef: String
    })
+ 
    onMounted(() => {
 
     let chart = lineRef.value.chartInstance;
     const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = chart; 
     chart.data.datasets[0].data[0].y = 2
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-over';
-    ctx.fillStyle = 'red';
-    ctx.fillRect(0, 0, width, height);
-    ctx.restore();
-  
+   // zoomBoxProfit(chart)
     chart.update('none')
   
   });
   const plugin1 = {
-    id: 'custom_canvas_background_color',
+    id: 'frame',
     afterDraw: (chart, args, options) => {
       zoomBoxProfit(chart)
     }
@@ -40,7 +36,7 @@
 
   function zoomBoxProfit(chart){
     const min = chart.scales.x.min;
-   const max = chart.scales.x.max;
+    const max = chart.scales.x.max;
 
    date1.value = new Date(min).toLocaleDateString()
    date2.value = new Date(max).toLocaleDateString()
@@ -60,7 +56,7 @@
      ctx.lineWidth = 2;
      ctx.strokeStyle = '#FF5B00';
      ctx.strokeRect(x.getPixelForValue(min), top, x.getPixelForValue(max) - x.getPixelForValue(min),  height);
-
+     chart.update()
 
    }
 
