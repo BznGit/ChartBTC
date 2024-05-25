@@ -1,8 +1,9 @@
 
 <template>
-    <input type="number"  @input="setHightlightHashrate" v-model="hightlightHashrate">
+  <input type="number"  @input="setHightlightHashrate" v-model="hightlightHashrate">
   <LineChart ref="lineRef" :chartData="chartData" :options="chartOptions"  />
-
+  <LineChart class= "smallChart"  ref="smallLineRef" :chartData="smallChartData" :options="smallChartOptions"  />
+  <span>{{ date1 }} - {{ date2 }}</span>
 </template>
  <script setup>
   import { LineChart } from "vue-chart-3";
@@ -23,7 +24,16 @@
   const emit = defineEmits(['onzoom' ])
 
   onMounted(() => {
+    let chart = lineRef.value.chartInstance;
+    let smallChart = smallLineRef.value.chartInstance;
+    console.log(chart.config.options.layout.padding.left)
+    smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
+    smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
 
+
+            
+  smallChart.update('none')
+ zoomBox(+data[0].x, +data[data.length-1].x)  
   });
 
   function setHightlightHashrate(event){
@@ -154,9 +164,10 @@
         ctx.fillRect(crosshair[1].startX - 50, bottom, 100, 20);
         ctx.font = 'bold 12px sans-serif';
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom'
         ctx.fillStyle = 'white';
-        ctx.fillText(leftyaxis.getValueForPixel(crosshair[0].startY).toFixed(2), left / 2, crosshair[0].startY)
-        ctx.fillText(new Date(x.getValueForPixel(crosshair[1].startX)).toDateString(), crosshair[1].startX, bottom + 10)
+        ctx.fillText(leftyaxis.getValueForPixel(crosshair[0].startY).toFixed(2), left / 2, crosshair[0].startY + 7)
+        ctx.fillText(new Date(x.getValueForPixel(crosshair[1].startX)).toDateString(), crosshair[1].startX, bottom + 17)
       }
     },
     // mouse move
@@ -229,6 +240,12 @@
     return {
       dragData: true,
       maintainAspectRatio: false,
+      layout:{
+        padding:{
+         left: 0,
+         right: 0
+        }
+      }, 
      
      interaction: {
        mode: 'index',
@@ -247,17 +264,32 @@
      plugins: {
 
       zoom: {
+         limits: {
+              x: {
+                min: +data[0].x,
+                max: +data[data.length-1].x
+              },
+        
+        },
         zoom: {
+         
           onZoom: ()=>{
             let chart = lineRef.value.chartInstance;
             let min = chart.scales.x.min;
             let max = chart.scales.x.max;
-            console.log(min, max)
-            emit('onzoom', min, max )
+
+            zoomBox(min, max)
           },
           pan: {
               enabled: true,
-              mode: 'x',     
+              mode: 'x', 
+              onPan:()=>{
+                let chart = lineRef.value.chartInstance;
+                let min = chart.scales.x.min;
+                let max = chart.scales.x.max;
+                console.log(min, max)
+                zoomBoxProfit(min, max)
+              }    
           },
           wheel: {
             enabled: true,
@@ -265,7 +297,7 @@
           pinch: {
             enabled: true
           },
-          mode: 'xy',
+          mode: 'x',
         }
       }, 
       dragData: {
@@ -328,6 +360,8 @@
      }, 
      scales: {
        x: {
+          min: +data[0].x,
+          max: +data[data.length-1].x,
          type: 'time',       
          time: {
            unit: 'month',
@@ -378,7 +412,193 @@ let dataset1 =  ref( {
       ] 
     }
   })
+////////////////////// Small Chart /////////////////////////////////
+const smallLineRef = ref()
+const date1 = ref();
+const date2 = ref()
 
+
+
+function  zoomBox(min, max){
+  let smallChart = smallLineRef.value.chartInstance;
+  const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = smallChart; 
+
+  date1.value = new Date(min).toLocaleDateString()
+  date2.value = new Date(max).toLocaleDateString()
+
+  smallChart.update('none')
+  zoomBoxItem(min, max)
+  function zoomBoxItem(min, max){
+    if(min===undefined){
+      min = data[0]
+    }
+    ctx.save();
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(5, 5, 5, 0.1)';
+    ctx.fillRect(x.getPixelForValue(min), top, x.getPixelForValue(max) - x.getPixelForValue(min),  height);
+    ctx.closePath()
+
+    swiperButton(x.getPixelForValue(min))
+    swiperButton(x.getPixelForValue(max))
+
+    function swiperButton(position){
+      const angel = Math.PI * 180
+      ctx.beginPath();
+      ctx.fillStyle = 'blue';
+      ctx.strokeStyle = 'blue';
+      ctx.fillRect(position -5, (height / 2) - 10, 10, 20);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(position -5 , (height / 2) - 10, 10, 20);
+      ctx.fill();
+      ctx.stroke();
+      ctx.closePath();
+      ctx.restore();
+
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(position - 2, (height / 2 - 7))
+      ctx.lineTo(position - 2, (height / 2 + 7))
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.beginPath();
+      ctx.moveTo(position + 2, (height / 2 - 7))
+      ctx.lineTo(position + 2, (height / 2 + 7))
+      ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+ 
+  canvas.addEventListener('mousemove', (e) => {
+    mouseCursore(e)
+  })
+  function mouseCursore(mousemove){
+    if (mousemove.offsetX >= x.getPixelForValue(min) - 10 && mousemove.offsetX <= x.getPixelForValue(min) + 10 ||
+        mousemove.offsetX >= x.getPixelForValue(max) - 10 && mousemove.offsetX <= x.getPixelForValue(max) + 10){
+      canvas.style.cursor = 'ew-resize'
+    }else if(mousemove.offsetX > x.getPixelForValue(min) + 10 && mousemove.offsetX < x.getPixelForValue(max) - 10){
+      canvas.style.cursor = 'move'
+    } else{
+      canvas.style.cursor = 'default'
+    }
+  }
+  canvas.addEventListener('mousedown', (e) =>{
+    dragStart(e);
+  })
+  canvas.addEventListener('mouseup', (e) =>{
+    canvas.onmousemove = null;
+  })
+  function dragStart(drag){
+    if(drag.offsetX >= x.getPixelForValue(min) - 10 && drag.offsetX <= x.getPixelForValue(min) + 10){
+      canvas.onmousemove = (e) => {
+        let chart = lineRef.value.chartInstance;
+        dragMove(chart, e);
+      }
+      function dragMove(chart, dragDelta){
+        const timestamp = x.getValueForPixel(dragDelta.offsetX);
+        const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
+        //const scrollPoint = dates.index(dayTimestamp)
+        console.log(chart.config.options.scales.x.max)
+        chart.config.options.scales.x.min = timestamp
+        chart.update('none')
+        smallChart.update('none');
+        
+        
+        zoomBoxItem(timestamp, chart.config.options.scales.x.max)
+      }
+    };
+    if(drag.offsetX >= x.getPixelForValue(max) - 10 && drag.offsetX <= x.getPixelForValue(max) + 10){
+      canvas.onmousemove = (e) => {
+        let chart = lineRef.value.chartInstance;
+        dragMove(chart, e);
+      }
+      function dragMove(chart, dragDelta){
+        const timestamp = x.getValueForPixel(dragDelta.offsetX);
+        const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
+
+        chart.config.options.scales.x.max = timestamp
+        chart.update('none')
+        smallChart.update('none');
+        console.log(timestamp)
+        zoomBoxItem(chart.config.options.scales.x.min, timestamp)
+        
+      }
+    }
+  }
+}
+let smallChartOptions = computed(()=>{
+    return {
+      animation: false,
+      layout:{
+        padding:{
+         left: 0,
+         right: 0
+        }
+      }, 
+     
+     plugins: {  
+      rectangel: false,
+      crosshairLabel: false,
+
+       legend: {
+         display:false,
+         labels: {
+           display:false,
+           usePointStyle: false,
+         },
+       },
+       tooltip:{
+              enabled: false
+        },
+     }, 
+     scales: {
+       x: {
+
+         type: 'time',       
+         time: {
+           unit: 'month',
+           displayFormats: {
+             minute:'HH:mm',
+             hour: 'HH:mm',
+             day: 'dd.MM',
+             week:'dd.MM.yy',
+           }
+         },
+       },
+       'leftyaxis': {
+        display: false,
+         type: 'linear',
+         position: 'left',
+         title: {text:"-",display: true},
+         min: 0
+       },
+     }  
+   }   
+ })
+ let dataset2 =  ref( {
+         label:"Hashrate",
+         borderColor: '#0068dd',
+         backgroundColor: '#0068dd',
+         cubicInterpolationMode: 'monotone',
+         pointRadius: 0,
+         yAxisID: 'leftyaxis',
+         hidden: false,
+         pointRadius:0,
+         pointHoverRadius: 0,
+         pointHitRadius: 0,
+         data: data,
+
+       })
+
+  const smallChartData = computed(()=>{
+      return {
+      datasets: [
+      dataset2.value
+      ] 
+    }
+  })
 </script>
 <style scoped>
 .smallChart{
