@@ -555,7 +555,8 @@ let smallChartOptions = computed(()=>{
      }, 
      scales: {
        x: {
-
+        min: +data[0].x,
+          max: +data[data.length-1].x,
          type: 'time',       
          time: {
            unit: 'month',
