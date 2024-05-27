@@ -26,30 +26,33 @@
   onMounted(() => {
     let chart = lineRef.value.chartInstance;
     let smallChart = smallLineRef.value.chartInstance;
-    console.log(chart.config.options.layout.padding.left)
+ 
     smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
     smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
+    smallChart.data.datasets[0].data = chart.data.datasets[0].data 
 
-
-            
-  smallChart.update('none')
- zoomBox(+data[0].x, +data[data.length-1].x)  
+    smallChart.update('none')
+    zoomBox()  
   });
 
   function setHightlightHashrate(event){
-    console.log(event.target.value)
     if(highlighArrIndex.length==0) return
     let chart = lineRef.value.chartInstance
+    let smallChart = smallLineRef.value.chartInstance
     highlighArrIndex.forEach(index=>{
       chart.data.datasets[0].data[index].y = event.target.value
-  })
-  chart.update()  
+      smallChart.data.datasets[0].data [index].y = event.target.value
+
+    })
+    chart.update()  
+    smallChart.update('none')
+    zoomBox()  
   }
   let highlighArrIndex = [];
   function highlightDatasetsPoints(setData){
-    let chart = lineRef.value.chartInstance
+    let chart = lineRef.value.chartInstance;
+
     chart.data.datasets[0].data.forEach((item, index)=>{
-      console.log(+item.x, index)
       if(((+setData.startX < +item.x &&  +item.x < +setData.endX) || (+setData.startX > +item.x &&  +item.x > +setData.endX))
       && ((+setData.startY < +item.y &&  +item.y < +setData.endY) || (+setData.startY > +item.y &&  +item.y > +setData.endY)))
         highlighArrIndex.push(index)
@@ -91,17 +94,13 @@
       const {ctx, canvas,  scales: {x, leftyaxis}}  = chart; 
       
       canvas.onclick = (e) =>{ 
-          console.log('clivk')
-
           if(highlighArrIndex.length!=0){
            
             highlighArrIndex.forEach(index=>{
-              chart.data.datasets[0].pointBorderColor[index] = 'blue'
-              chart.data.datasets[0].backgroundColor[index] = 'blue'
-              
+              chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
+              chart.data.datasets[0].backgroundColor[index] = '#0068dd'
               highlighArrIndex = []
             })
-            console.log(chart)
             chart.update()
           }
       };
@@ -274,21 +273,14 @@
         zoom: {
          
           onZoom: ()=>{
-            let chart = lineRef.value.chartInstance;
-            let min = chart.scales.x.min;
-            let max = chart.scales.x.max;
-
-            zoomBox(min, max)
+              zoomBox()
           },
           pan: {
               enabled: true,
               mode: 'x', 
               onPan:()=>{
-                let chart = lineRef.value.chartInstance;
-                let min = chart.scales.x.min;
-                let max = chart.scales.x.max;
-                console.log(min, max)
-                zoomBoxProfit(min, max)
+  
+                zoomBox()
               }    
           },
           wheel: {
@@ -319,6 +311,7 @@
             hightlightHashrate.value = value.y
             if (highlighArrIndex.length!=0){
               let chart = lineRef.value.chartInstance;
+              let smallChart = smallLineRef.value.chartInstance;
               let point = +value.x
               let left = +chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x;
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
@@ -326,8 +319,12 @@
                 hightlightHashrate.value = value.y
                   highlighArrIndex.forEach(index1=>{
                   chart.data.datasets[datasetIndex].data[index1].y = value.y
+                  smallChart.data.datasets[datasetIndex].data[index1].y = value.y
                 })
                 chart.update()
+                smallChart.update('none')
+                zoomBox()
+                console.log('react')
               }
             }
           },
@@ -364,7 +361,7 @@
           max: +data[data.length-1].x,
          type: 'time',       
          time: {
-           unit: 'month',
+           unit: 'day',
            displayFormats: {
              minute:'HH:mm',
              hour: 'HH:mm',
@@ -383,11 +380,16 @@
    }   
  })
 let data =  [
-  {x: new Date(2023, 10), y: 11},
-  {x: new Date(2023, 11), y: 12}, 
-  {x: new Date(2024, 0),  y: 6 },
-  {x: new Date(2024, 1),  y: 7 }, 
-  {x: new Date(2024, 2),  y: 9 }, 
+  {x: +new Date(2024, 10, 1),  y: 11},
+  {x: +new Date(2024, 10, 2),  y: 12}, 
+  {x: +new Date(2024, 10, 3),  y: 6 },
+  {x: +new Date(2024, 10, 4),  y: 7 }, 
+  {x: +new Date(2024, 10, 5),  y: 9 }, 
+  {x: +new Date(2024, 10, 6),  y: 5 },
+  {x: +new Date(2024, 10, 7),  y: 7 }, 
+  {x: +new Date(2024, 10, 8),  y: 6 },
+  {x: +new Date(2024, 10, 9),  y: 2 }, 
+  {x: +new Date(2024, 10, 10), y: 8 }, 
 ]
 let dataset1 =  ref( {
          label:"Hashrate",
@@ -401,8 +403,8 @@ let dataset1 =  ref( {
          pointHoverRadius: 4,
          spanGaps: true,
          data: data,
-         backgroundColor: ['blue', 'blue','blue','blue','blue'],
-         pointBorderColor: ['blue','blue','blue', 'blue','blue']
+         backgroundColor: ['#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd'],
+         pointBorderColor: ['#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd']
        })
 
   const chartData = computed(()=>{
@@ -419,19 +421,23 @@ const date2 = ref()
 
 
 
-function  zoomBox(min, max){
+function  zoomBox(){
   let smallChart = smallLineRef.value.chartInstance;
+  let chart = lineRef.value.chartInstance;
   const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = smallChart; 
 
-  date1.value = new Date(min).toLocaleDateString()
-  date2.value = new Date(max).toLocaleDateString()
-
+  let min = chart.scales.x.min;
+  let max = chart.scales.x.max;
+ 
   smallChart.update('none')
   zoomBoxItem(min, max)
   function zoomBoxItem(min, max){
+    
     if(min===undefined){
       min = data[0]
     }
+    date1.value = new Date(min).toLocaleDateString()
+    date2.value = new Date(max).toLocaleDateString()
     ctx.save();
     ctx.beginPath();
     ctx.fillStyle = 'rgba(5, 5, 5, 0.1)';
@@ -444,8 +450,8 @@ function  zoomBox(min, max){
     function swiperButton(position){
       const angel = Math.PI * 180
       ctx.beginPath();
-      ctx.fillStyle = 'blue';
-      ctx.strokeStyle = 'blue';
+      ctx.fillStyle = '#0068dd';
+      ctx.strokeStyle = '#0068dd';
       ctx.fillRect(position -5, (height / 2) - 10, 10, 20);
       ctx.lineWidth = 2;
       ctx.strokeRect(position -5 , (height / 2) - 10, 10, 20);
@@ -470,46 +476,59 @@ function  zoomBox(min, max){
     }
   };
 
- 
   canvas.addEventListener('mousemove', (e) => {
     mouseCursore(e)
   })
+
   function mouseCursore(mousemove){
-    if (mousemove.offsetX >= x.getPixelForValue(min) - 10 && mousemove.offsetX <= x.getPixelForValue(min) + 10 ||
-        mousemove.offsetX >= x.getPixelForValue(max) - 10 && mousemove.offsetX <= x.getPixelForValue(max) + 10){
+
+    if (mousemove.offsetX >= x.getPixelForValue(chart.config.options.scales.x.min) - 10 && mousemove.offsetX <= x.getPixelForValue(chart.config.options.scales.x.min) + 10 ||
+        mousemove.offsetX >= x.getPixelForValue(chart.config.options.scales.x.max) - 10 && mousemove.offsetX <= x.getPixelForValue(chart.config.options.scales.x.max) + 10){
       canvas.style.cursor = 'ew-resize'
-    }else if(mousemove.offsetX > x.getPixelForValue(min) + 10 && mousemove.offsetX < x.getPixelForValue(max) - 10){
+    }else if(mousemove.offsetX > x.getPixelForValue(chart.config.options.scales.x.min) + 10 && mousemove.offsetX < x.getPixelForValue(chart.config.options.scales.x.max) - 10){
       canvas.style.cursor = 'move'
     } else{
       canvas.style.cursor = 'default'
     }
   }
+
   canvas.addEventListener('mousedown', (e) =>{
     dragStart(e);
   })
+
   canvas.addEventListener('mouseup', (e) =>{
     canvas.onmousemove = null;
   })
+
   function dragStart(drag){
-    if(drag.offsetX >= x.getPixelForValue(min) - 10 && drag.offsetX <= x.getPixelForValue(min) + 10){
+    if(drag.offsetX >= x.getPixelForValue(chart.config.options.scales.x.min) - 10 && drag.offsetX <= x.getPixelForValue(chart.config.options.scales.x.min) + 10){
       canvas.onmousemove = (e) => {
         let chart = lineRef.value.chartInstance;
         dragMove(chart, e);
-      }
+      };
       function dragMove(chart, dragDelta){
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
-        //const scrollPoint = dates.index(dayTimestamp)
-        console.log(chart.config.options.scales.x.max)
-        chart.config.options.scales.x.min = timestamp
+        let scrollPoint = data.findIndex(item => item.x == dayTimestamp)
+        console.log(scrollPoint)
+
+        if(dragDelta.offsetX < left ) scrollPoint = 0; 
+        if(dragDelta.offsetX > right ){
+          console.log('first>',scrollPoint)
+          scrollPoint = data.findIndex(item => item.x == chart.config.options.scales.x.max ) - 1;
+        } 
+        if(scrollPoint > data.findIndex(item => item.x == chart.config.options.scales.x.max) - 1) {
+          scrollPoint = data.findIndex(item => item.x == chart.config.options.scales.x.max) - 1
+        }
+        console.log(scrollPoint)
+        chart.config.options.scales.x.min = data[scrollPoint].x
         chart.update('none')
         smallChart.update('none');
-        
-        
-        zoomBoxItem(timestamp, chart.config.options.scales.x.max)
+        zoomBoxItem(data[scrollPoint].x, chart.config.options.scales.x.max)
       }
     };
-    if(drag.offsetX >= x.getPixelForValue(max) - 10 && drag.offsetX <= x.getPixelForValue(max) + 10){
+
+    if(drag.offsetX >= x.getPixelForValue(chart.config.options.scales.x.max) - 10 && drag.offsetX <= x.getPixelForValue(chart.config.options.scales.x.max) + 10){
       canvas.onmousemove = (e) => {
         let chart = lineRef.value.chartInstance;
         dragMove(chart, e);
@@ -517,12 +536,22 @@ function  zoomBox(min, max){
       function dragMove(chart, dragDelta){
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
+        let scrollPoint = data.findIndex(item => item.x == dayTimestamp)
+        console.log(scrollPoint)
 
-        chart.config.options.scales.x.max = timestamp
+        if(dragDelta.offsetX > right && scrollPoint === -1) scrollPoint = data[data.length - 1].x; 
+        if(dragDelta.offsetX < left && scrollPoint === -1){
+          console.log('first>',scrollPoint)
+          scrollPoint = data.findIndex(item => item.x == chart.config.options.scales.x.min ) + 1;
+        } 
+        if(scrollPoint < data.findIndex(item => item.x == chart.config.options.scales.x.min) + 1 && scrollPoint === -1) {
+          scrollPoint = data.findIndex(item => item.x == chart.config.options.scales.x.min) + 1
+        }
+        console.log(data[scrollPoint], scrollPoint)
+        chart.config.options.scales.x.max = data[scrollPoint].x
         chart.update('none')
         smallChart.update('none');
-        console.log(timestamp)
-        zoomBoxItem(chart.config.options.scales.x.min, timestamp)
+        zoomBoxItem(chart.config.options.scales.x.min, data[scrollPoint].x)
         
       }
     }
@@ -556,10 +585,10 @@ let smallChartOptions = computed(()=>{
      scales: {
        x: {
         min: +data[0].x,
-          max: +data[data.length-1].x,
+         // max: +data[data.length-1].x,
          type: 'time',       
          time: {
-           unit: 'month',
+           unit: 'day',
            displayFormats: {
              minute:'HH:mm',
              hour: 'HH:mm',
@@ -578,26 +607,22 @@ let smallChartOptions = computed(()=>{
      }  
    }   
  })
- let dataset2 =  ref( {
-         label:"Hashrate",
-         borderColor: '#0068dd',
-         backgroundColor: '#0068dd',
-         cubicInterpolationMode: 'monotone',
-         pointRadius: 0,
-         yAxisID: 'leftyaxis',
-         hidden: false,
-         pointRadius:0,
-         pointHoverRadius: 0,
-         pointHitRadius: 0,
-         data: data,
-
-       })
 
   const smallChartData = computed(()=>{
       return {
-      datasets: [
-      dataset2.value
-      ] 
+      datasets: [{
+        label:"Hashrate",
+        borderColor: '#0068dd',
+        backgroundColor: '#0068dd',
+        cubicInterpolationMode: 'monotone',
+        pointRadius: 0,
+        yAxisID: 'leftyaxis',
+        hidden: false,
+        pointRadius:0,
+        pointHoverRadius: 0,
+        pointHitRadius: 0,
+        data: null,
+      }] 
     }
   })
 </script>
