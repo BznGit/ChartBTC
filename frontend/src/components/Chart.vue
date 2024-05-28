@@ -540,11 +540,11 @@ function  zoomBox(){
         console.log(scrollPoint)
 
         if(dragDelta.offsetX > right && scrollPoint === -1) scrollPoint = data[data.length - 1].x; 
-        if(dragDelta.offsetX < left && scrollPoint === -1){
+        if(dragDelta.offsetX < left ){
           console.log('first>',scrollPoint)
           scrollPoint = data.findIndex(item => item.x == chart.config.options.scales.x.min ) + 1;
         } 
-        if(scrollPoint < data.findIndex(item => item.x == chart.config.options.scales.x.min) + 1 && scrollPoint === -1) {
+        if(scrollPoint < data.findIndex(item => item.x == chart.config.options.scales.x.min) + 1 ) {
           scrollPoint = data.findIndex(item => item.x == chart.config.options.scales.x.min) + 1
         }
         console.log(data[scrollPoint], scrollPoint)
