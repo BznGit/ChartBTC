@@ -74,7 +74,7 @@
       const {ctx, chartArea:  {left, right, top, bottom}, scales: {x, leftyaxis}}  = chart;
       if(rectangelXY){
         ctx.save();
-        ctx.fillStyle = 'rgba(237, 171, 109, 0.4)';
+        ctx.fillStyle = 'rgba(5, 5, 5, 0.1)';
            
         let width = rectangelXY.startX - rectangelXY.endX
         let height = rectangelXY.startY - rectangelXY.endY
@@ -513,7 +513,7 @@ function  zoomBox(){
         let chart = lineRef.value.chartInstance;
         dragMove(chart, e);
       };
-      
+
       function dragMove(chart, dragDelta){
 
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
