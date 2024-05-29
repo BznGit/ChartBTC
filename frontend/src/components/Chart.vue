@@ -426,8 +426,8 @@ function  zoomBox(){
   let chart = lineRef.value.chartInstance;
   const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = smallChart; 
 
-  let min = chart.scales.x.min;
-  let max = chart.scales.x.max;
+  let min = chart.config.options.scales.x.min;
+  let max = chart.config.options.scales.x.max;
  
   smallChart.update('none')
   zoomBoxItem(min, max)
@@ -481,11 +481,14 @@ function  zoomBox(){
   })
 
   function mouseCursore(mousemove){
-
-    if (mousemove.offsetX >= x.getPixelForValue(chart.config.options.scales.x.min) - 10 && mousemove.offsetX <= x.getPixelForValue(chart.config.options.scales.x.min) + 10 ||
+    let minChart1 = chart.config.options.scales.x.min;
+    if (minChart1 === undefined || minChart1 === -1){
+      minChart1 =data[0]
+    }
+    if (mousemove.offsetX >= x.getPixelForValue(minChart1) - 10 && mousemove.offsetX <= x.getPixelForValue(minChart1) + 10 ||
         mousemove.offsetX >= x.getPixelForValue(chart.config.options.scales.x.max) - 10 && mousemove.offsetX <= x.getPixelForValue(chart.config.options.scales.x.max) + 10){
       canvas.style.cursor = 'ew-resize'
-    }else if(mousemove.offsetX > x.getPixelForValue(chart.config.options.scales.x.min) + 10 && mousemove.offsetX < x.getPixelForValue(chart.config.options.scales.x.max) - 10){
+    }else if(mousemove.offsetX > x.getPixelForValue(minChart1) + 10 && mousemove.offsetX < x.getPixelForValue(chart.config.options.scales.x.max) - 10){
       canvas.style.cursor = 'move'
     } else{
       canvas.style.cursor = 'default'
@@ -501,26 +504,33 @@ function  zoomBox(){
   })
 
   function dragStart(drag){
-    if(drag.offsetX >= x.getPixelForValue(chart.config.options.scales.x.min) - 10 && drag.offsetX <= x.getPixelForValue(chart.config.options.scales.x.min) + 10){
+    let minChart1 = chart.config.options.scales.x.min;
+    if (minChart1 === undefined || minChart1 === -1){
+      minChart1 =data[0]
+    }
+    if(drag.offsetX >= x.getPixelForValue(minChart1) - 10 && drag.offsetX <= x.getPixelForValue(chart.config.options.scales.x.min) + 10){
       canvas.onmousemove = (e) => {
         let chart = lineRef.value.chartInstance;
         dragMove(chart, e);
       };
+      
       function dragMove(chart, dragDelta){
+
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
         let scrollPoint = data.findIndex(item => item.x == dayTimestamp)
         console.log(scrollPoint)
+      
 
-        if(dragDelta.offsetX < left ) scrollPoint = 0; 
-        if(dragDelta.offsetX > right ){
-          console.log('first>',scrollPoint)
+        if(dragDelta.offsetX < left) scrollPoint = 0; 
+        if(dragDelta.offsetX > right && scrollPoint==-1){
+         
           scrollPoint = data.findIndex(item => item.x == chart.config.options.scales.x.max ) - 1;
         } 
-        if(scrollPoint > data.findIndex(item => item.x == chart.config.options.scales.x.max) - 1) {
+        if(scrollPoint > data.findIndex(item => item.x == chart.config.options.scales.x.max) - 1 && scrollPoint==-1) {
           scrollPoint = data.findIndex(item => item.x == chart.config.options.scales.x.max) - 1
         }
-        console.log(scrollPoint)
+        console.log(data[scrollPoint], scrollPoint)
         chart.config.options.scales.x.min = data[scrollPoint].x
         chart.update('none')
         smallChart.update('none');
