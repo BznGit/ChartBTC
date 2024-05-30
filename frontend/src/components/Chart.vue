@@ -525,6 +525,7 @@ function  zoomBox(){
 
   function dragStart(drag){
     let minChart1 = chart.config.options.scales.x.min;
+    let maxChart1 = chart.config.options.scales.x.max;
     if (minChart1 === undefined || minChart1 === -1){
       minChart1 = data[0].x
     }
@@ -587,10 +588,10 @@ function  zoomBox(){
      && drag.offsetX < x.getPixelForValue(chart.config.options.scales.x.max) - 11){
       canvas.onmousemove = (e) => {
         let chart = lineRef.value.chartInstance;
-        dragMoveCenter(chart, e);
+        dragMoveCenter(chart, e, minChart1, maxChart1);
       }
 
-      function dragMoveCenter(chart, dragDelta){
+      function dragMoveCenter(chart, dragDelta, staticScaleMin, staticScaleMax){
         // starting point
         //let chart = lineRef.value.chartInstance;
         console.log('center')
@@ -608,35 +609,55 @@ function  zoomBox(){
         console.log(scrollPoint)
 
         const difference = scrollPoint - dragStart;
-        let difference2 = 0;
+        if(scrollPoint === -1 && dragDelta.offsetX >= right){
+          scrollPoint = data.length - 1
+        }
+        const range = data.findIndex(item =>item.x === staticScaleMax) - data.findIndex(item =>item.x === staticScaleMin)
+let minChart1;
+let maxChart1;
+        const minVal = data.findIndex(item =>item.x === staticScaleMin) + difference - range;
+        console.log(minVal)
+        if (minVal < 0){
+          minChart1 = data[0].x
+          maxChart1 = data[0].x + range
+        } else {
+          minChart1 = data[data.findIndex(item =>item.x === staticScaleMin) + difference].x
+        }
+        
+        const maxVal = data.findIndex(item =>item.x === staticScaleMax) + difference - range;
+        console.log(minVal)
+        if (maxVal >= data.length - 1  || difference < 0 && dragDelta.offsetX >= right){
+          minChart1 = data[data.length - 1 - range].x
+          maxChart1 = data[data.length - 1].x 
+        } else {
+          maxChart1 = data[data.findIndex(item =>item.x === staticScaleMax) + difference].x
+        }
+       /* let difference2 = 0;
        if(dragDelta.movementX > 0){
           difference2 = 1
         }
         if(dragDelta.movementX < 0){
           difference2 = -1
-        }
+        }*/
    
-       let min =  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)
-       let max = new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)
-  
-       // let min =  chart.config.options.scales.x.min
-       // let max = chart.config.options.scales.x.max
+      /*  let min =  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)
+        let max = new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)
 
-        let minChart1 = 0
-        if (data[data.findIndex(item => item.x === min) + difference2] === undefined){
+         minChart1 = 0
+        if (data[data.findIndex(item => item.x === min)] === undefined){
           minChart1 = data[0].x
         } else{
           minChart1 = data[data.findIndex(item => item.x === min) + difference].x
         } 
         
-        let maxChart1 = 0
-        if (data[data.findIndex(item => item.x === max) + difference2] === undefined){
+        maxChart1 = 0
+        if (data[data.findIndex(item => item.x === max)] === undefined){
           maxChart1 = data[data.length - 1].x
         } else {
-          maxChart1 = data[data.findIndex(item => item.x === max) + difference2].x
+          maxChart1 = data[data.findIndex(item => item.x === max) + difference].x
         }
 
-
+*/
         console.log('minChart1 = ', new Date(minChart1).toLocaleString())
         console.log('maxChart1 = ', new Date(maxChart1).toLocaleString())
 
@@ -644,11 +665,11 @@ function  zoomBox(){
           chart.config.options.scales.x.min = data[0].x
           chart.config.options.scales.x.max = chart.config.options.scales.x.max
           console.log('drag left')
-        } else if(minChart1 === data[data.length - 1].x){
+        } else if(maxChart1 === data[data.length - 1].x){
           chart.config.options.scales.x.min = chart.config.options.scales.x.min
           chart.config.options.scales.x.max = data[data.length - 1].x
           console.log('drag right')
-        } else if(minChart1 >= data[0].x  &&  chart.config.options.scales.x.max <=  data[data.length - 1].x){
+        } else if(chart.config.options.scales.x.min >= data[0].x  &&  chart.config.options.scales.x.max <=  data[data.length - 1].x){
           chart.config.options.scales.x.min = minChart1;
           chart.config.options.scales.x.max = maxChart1;
           console.log('drag')
