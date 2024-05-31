@@ -585,7 +585,8 @@ function  zoomBox(){
     }
     if(drag.offsetX > x.getPixelForValue(chart.config.options.scales.x.min) + 11 && 
       drag.offsetX < x.getPixelForValue(chart.config.options.scales.x.max) - 11){
-      canvas.onmousemove = (e) => {
+      
+        canvas.onmousemove = (e) => {
         let chart = lineRef.value.chartInstance;
         dragMoveCenter(chart, e);
       }
@@ -593,20 +594,20 @@ function  zoomBox(){
       function dragMoveCenter(chart, dragDelta){
 
         console.log('center')
-        console.log(dragDelta.movementX)
+       // console.log(dragDelta.movementX)
         const dragStartingPoint = x.getValueForPixel(drag.offsetX)
         const dayStartingPoint = new Date(dragStartingPoint).setHours(0, 0, 0, 0)
         let dragStart = data.findIndex(item => item.x == dayStartingPoint)
-        console.log(dragStart)
+      //  console.log(dragStart)
        //  console.log('minChart1 = ', new Date(minChart1).toLocaleString())
         
         // difference
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
         let scrollPoint = data.findIndex(item => item.x == dayTimestamp)
-        console.log(scrollPoint)
+       // console.log(scrollPoint)
 
-        const difference = scrollPoint - dragStart;
+        let difference = scrollPoint - dragStart;
         let difference2 = 0;
        if(dragDelta.movementX > 0){
           difference2 = 1
@@ -615,28 +616,33 @@ function  zoomBox(){
           difference2 = -1
         }
    
-        let min =  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)
-        let max = new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)
+       let min =  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)
+       let max = new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)
+       let minIndex = data.findIndex(item => item.x === min)
+       let maxIndex = data.findIndex(item => item.x === max)
 
-
-        let minChart1 = 0
-        if (data[data.findIndex(item => item.x === min) + difference2] === undefined){
+        let minChart1
+        console.log('diference>',difference )
+        console.log('min index point>',minIndex)
+        console.log('max index point>', maxIndex)
+        
+        if (data[minIndex + difference] === undefined){
           minChart1 = data[0].x
         } else{
-          minChart1 = data[data.findIndex(item => item.x === min) + difference2].x
+          minChart1 = data[minIndex + difference].x
         } 
         
-        let maxChart1 = 0
-        if (data[data.findIndex(item => item.x === max) + difference2] === undefined){
+        let maxChart1
+        if (data[maxIndex + difference] === undefined){
           maxChart1 = data[data.length - 1].x
         } else {
-          maxChart1 = data[data.findIndex(item => item.x === max) + difference2].x
+          maxChart1 = data[maxIndex + difference].x
         }
 
         console.log('minChart1 = ', new Date(minChart1).toLocaleString())
         console.log('maxChart1 = ', new Date(maxChart1).toLocaleString())
 
-        if (minChart1 === data[0].x){
+       /* if (minChart1 === data[0].x){
           chart.config.options.scales.x.min = data[0].x
           chart.config.options.scales.x.max = chart.config.options.scales.x.max
           console.log('drag left')
@@ -645,11 +651,17 @@ function  zoomBox(){
           chart.config.options.scales.x.max = data[data.length - 1].x
           console.log('drag right')
         } else if(minChart1 >= data[0].x  &&  chart.config.options.scales.x.max <=  data[data.length - 1].x){
-          chart.config.options.scales.x.min = minChart1;
-          chart.config.options.scales.x.max = maxChart1;
+         //// chart.config.options.scales.x.min = minChart1;
+         // chart.config.options.scales.x.max = maxChart1;
           console.log('drag')
-        }
-      
+        }*/
+       // chart.config.options.scales.x.min = minChart1;
+      ///  chart.config.options.scales.x.max = maxChart1;
+        
+    
+        console.log('after min =>', new Date(chart.config.options.scales.x.min).toLocaleString());
+        console.log('after max =>', new Date(chart.config.options.scales.x.max).toLocaleString());  
+        
         chart.update('none')
         smallChart.update('none')
         zoomBoxItem(minChart1, maxChart1)
