@@ -11,7 +11,6 @@ route.get('/chart', function(req, res, next){
     console.log('>>get nodes')
     const chart = data.getDefaultData()
     res.send(data);
-    res.send('get nodes request error in router.js');
     res.end();
     /*db.getNodes().then((nodes)=>{         
         if(nodes){

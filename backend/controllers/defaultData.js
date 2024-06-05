@@ -4,7 +4,7 @@ const defaultData = class {
         let step = new Date()
         let start = new Date();
         step.setDate(step.getDate() + 1);
-        let lengthSettings = 10;
+        let lengthSettings = 365*3;
         this.arrData = [];
         let cur = +curr
         let nw = +step
@@ -14,6 +14,7 @@ const defaultData = class {
                 x: new Date(+start + delta*i).setHours(0, 0, 0, 0),
                 y: 5
             }
+            
             this.arrData.push(obj)
         }
     }
