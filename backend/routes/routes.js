@@ -1,12 +1,18 @@
 const express = require('express');
 const route = express.Router();
 const DbController = require('../controllers/dbController');
-
 const db = new DbController();
 
-route.get('/nodes', function(req, res, next){
+const DataClass = require('../controllers/defaultData.js');
+const data = new DataClass();
+
+
+route.get('/chart', function(req, res, next){
     console.log('>>get nodes')
-    res.end('ggtgtgtgt');
+    const chart = data.getDefaultData()
+    res.send(data);
+    res.send('get nodes request error in router.js');
+    res.end();
     /*db.getNodes().then((nodes)=>{         
         if(nodes){
             res.send(nodes);

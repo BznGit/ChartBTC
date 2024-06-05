@@ -5,7 +5,10 @@ export default defineConfig({
   plugins: [vue()],
   server:{
     proxy: {
-      '/nodes':'http://localhost:3000',
+      '/chart':'http://localhost:3000',
     },
+  },
+  build: {
+    outDir: '../backend/dist'
   }
 })

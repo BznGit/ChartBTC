@@ -1,5 +1,5 @@
 {
-    "watch": ["backend", "app.js"],
+    "watch": ["controllers", "routes", "app.js"],
     "ext": "mustache, js, json"
 
 }
