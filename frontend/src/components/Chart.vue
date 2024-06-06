@@ -26,7 +26,7 @@
          borderColor: '#0068dd',
          backgroundColor: '#0068dd',
          cubicInterpolationMode: 'monotone',
-         pointRadius: 3,
+         pointRadius: 4,
          yAxisID: 'leftyaxis',
          hidden: false,
          dragData: true,
@@ -50,19 +50,22 @@
         
         let chart = lineRef.value.chartInstance;
         let smallChart = smallLineRef.value.chartInstance;
+        
         chart.data.datasets[0].data = data.arrData;
-
+        
         chart.config.options.scales.x.min = data.arrData[0].x;
-        chart.config.options.scales.x.max = data.arrData[data.arrData.length - 1].x
+        chart.config.options.scales.x.max = data.arrData[data.arrData.length - 1].x;
+
+        let min = data.arrData.reduce((prev,cur) => cur.y < prev.y? cur : prev);
+        let max = data.arrData.reduce((prev,cur) => cur.y > prev.y? cur : prev);
+        chart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
+        chart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
 
         chart.config.options.plugins.zoom.limits.x.min = data.arrData[0].x;
         chart.config.options.plugins.zoom.limits.x.max = data.arrData[data.arrData.length - 1].x
 
         chart.config.options.scales.x.min = data.arrData[0].x;
         chart.config.options.scales.x.max = data.arrData[data.arrData.length - 1].x;
-
-        console.log(chart.config.options.plugins.zoom.limits.x.min)
-
 
         smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
         smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
@@ -188,7 +191,9 @@
     id: 'crosshairLabel',
     // drawing part
     afterDatasetsDraw: (chart, args, plugins) => {
-      const {ctx, chartArea:  {left, right, top, bottom}, scales: {x, leftyaxis}}  = chart;   
+      const {ctx, canvas, chartArea:  {left, right, top, bottom}, scales: {x, leftyaxis}}  = chart;  
+
+
       ctx.lineWidth = 1;
       ctx.strokeStyle = 'grey';
       ctx.setLineDash([5, 3])
@@ -199,24 +204,30 @@
           ctx.moveTo(line.startX, line.startY);
           ctx.lineTo(line.endX, line.endY);
           ctx.stroke();
+    
         })
-        ctx.fillStyle = 'grey'
-        ctx.fillRect(0, crosshair[0].startY - 10, left, 20);
-        ctx.fillRect(crosshair[1].startX - 50, bottom, 100, 20);
+        ctx.fillStyle = 'grey';
+        const textWidthX = ctx.measureText(new Date(x.getValueForPixel(crosshair[1].startX)).toDateString()).width ;
+        const textWidthY = ctx.measureText(leftyaxis.getValueForPixel(crosshair[0].startY).toFixed(2)).width - 20;
+        ctx.fillRect(0 - textWidthY, crosshair[0].startY - 10, left + textWidthY, 20);
+        ctx.fillRect(crosshair[1].startX - (textWidthX/2), bottom, textWidthX, 25);
         ctx.font = 'bold 12px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom'
         ctx.fillStyle = 'white';
-        ctx.fillText(leftyaxis.getValueForPixel(crosshair[0].startY).toFixed(2), left / 2, crosshair[0].startY + 7)
-        ctx.fillText(new Date(x.getValueForPixel(crosshair[1].startX)).toDateString(), crosshair[1].startX, bottom + 17)
+        ctx.fillText(leftyaxis.getValueForPixel(crosshair[0].startY).toFixed(2), left / 2 , crosshair[0].startY + 7)
+        ctx.fillText(new Date(x.getValueForPixel(crosshair[1].startX)).toLocaleDateString(), crosshair[1].startX, bottom + 20)
+
+
+        
       }
     },
     // mouse move
     afterEvent(chart, args){
-      const {ctx, chartArea:  {left, right, top, bottom} }  = chart;
+      const {ctx, canvas, chartArea:  {left, right, top, bottom} }  = chart;
       const xCoor = args.event.x;
-      const yCoor = args.event.y
-
+      const yCoor = args.event.y;
+      
       ctx.lineWidth = 1;
       ctx.strokeStyle = 'grey';
 
@@ -239,7 +250,11 @@
           },
         ];
         args.changed = true;
-      }      
+      }   
+      
+      
+
+
     }
 }
   const plugin = {
@@ -259,7 +274,7 @@
       const {ctx } = chart
       const {top, bottom, left, right} = chart.chartArea
       const {tooltip} = args
-      console.log('>>', )
+
       const x = tooltip?.caretX
       const y = tooltip?.caretY
       if (!x) return
@@ -291,7 +306,7 @@
      
      interaction: {
        mode: 'index',
-       intersect: false,
+       intersect: true,
      },
      hover: {
             intersect: false,
@@ -299,18 +314,25 @@
         },
         onHover: function(e) {
             const point = e.chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false)
-            if (point.length) e.native.target.style.cursor = 'grab'
-            else e.native.target.style.cursor = 'default'
+            
+            if (point.length){
+              e.native.target.style.cursor = 'grab';
+             // console.log(point[0].element.options.radius)
+              point[0].element.options.radius = 4
+            } 
+            else {
+              e.native.target.style.cursor = 'crosshair'
+             // point[0].element.options.radius = 1
+            }
 
           },
      plugins: {
       zoom: {
-         limits: {
-              x: {
-            
-              },
+        limits:{
+          x:{}, 
+          
         },
-        zoom: {
+         zoom: {
          
           onZoom: ()=>{
             let chart = lineRef.value.chartInstance;
@@ -328,7 +350,7 @@
       }, 
       dragData: {
    
-          round: 0, // rounds the values to n decimal places
+          round: 2, // rounds the values to n decimal places
           // in this case 1, e.g 0.1234 => 0.1)
           showTooltip: false, // show the tooltip while dragging [default = true]
           // dragX: true // also enable dragging along the x-axis.
@@ -351,9 +373,11 @@
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
               if((left <= point &&  point <= right) || (left >= point &&  point >= right)){
                 hightlightHashrate.value = value.y
+                chart.config.options.scales['leftyaxis'].max = value.y + value.y*0.1;
                   highlighArrIndex.forEach(index1=>{
                   chart.data.datasets[datasetIndex].data[index1].y = value.y
                   smallChart.data.datasets[datasetIndex].data[index1].y = value.y
+                  
                 })
                 chart.update()
                 smallChart.update('none')
@@ -375,12 +399,24 @@
          },
        },
        tooltip: {
-         usePointStyle: true,
-         callbacks: {
+        position: 'average',
+        enabled: true,
+        intersect: false,
+        padding: 10,
+        usePointStyle: true,
+        callbacks: {
            labelPointStyle: function(context) {
+           let a = context
+            if(context){
+             // context.element.options.radius = 4
+              console.log(context.element.options.radius)
+            } else {
+              context.element.options.radius = 1
+            }
              return {
                pointStyle: 'circule',
-               rotation: 0
+               rotation: 0, 
+               radius: 10
              };
            },
            label: function(tooltipItems) {
@@ -413,99 +449,6 @@
      }  
    }   
  })
-let data =  [
-  {x: +new Date(2024, 10, 1),  y: 11},
-  {x: +new Date(2024, 10, 2),  y: 12}, 
-  {x: +new Date(2024, 10, 3),  y: 6 },
-  {x: +new Date(2024, 10, 4),  y: 7 }, 
-  {x: +new Date(2024, 10, 5),  y: 9 }, 
-  {x: +new Date(2024, 10, 6),  y: 5 },
-  {x: +new Date(2024, 10, 7),  y: 7 }, 
-  {x: +new Date(2024, 10, 8),  y: 6 },
-  {x: +new Date(2024, 10, 9),  y: 2 }, 
-  {x: +new Date(2024, 10, 10), y: 8 }, 
-  {x: +new Date(2024, 10, 11),  y: 11},
-  {x: +new Date(2024, 10, 12),  y: 12}, 
-  {x: +new Date(2024, 10, 13),  y: 6 },
-  {x: +new Date(2024, 10, 14),  y: 7 }, 
-  {x: +new Date(2024, 10, 15),  y: 9 }, 
-  {x: +new Date(2024, 10, 16),  y: 5 },
-  {x: +new Date(2024, 10, 17),  y: 7 }, 
-  {x: +new Date(2024, 10, 18),  y: 6 },
-  {x: +new Date(2024, 10, 19),  y: 2 }, 
-  {x: +new Date(2024, 10, 20),  y: 8 },
-  {x: +new Date(2024, 10, 21),  y: 11},
-  {x: +new Date(2024, 10, 22),  y: 12}, 
-  {x: +new Date(2024, 10, 23),  y: 6 },
-  {x: +new Date(2024, 10, 24),  y: 7 }, 
-  {x: +new Date(2024, 10, 25),  y: 9 }, 
-  {x: +new Date(2024, 10, 26),  y: 5 },
-  {x: +new Date(2024, 10, 27),  y: 7 }, 
-  {x: +new Date(2024, 10, 28),  y: 6 },
-  {x: +new Date(2024, 10, 29),  y: 2 }, 
-  {x: +new Date(2024, 10, 30), y: 8 },
-  {x: +new Date(2024, 11, 1),  y: 11},
-  {x: +new Date(2024, 11, 2),  y: 12}, 
-  {x: +new Date(2024, 11, 3),  y: 6 },
-  {x: +new Date(2024, 11, 4),  y: 7 }, 
-  {x: +new Date(2024, 11, 5),  y: 9 }, 
-  {x: +new Date(2024, 11, 6),  y: 5 },
-  {x: +new Date(2024, 11, 7),  y: 7 }, 
-  {x: +new Date(2024, 11, 8),  y: 6 },
-  {x: +new Date(2024, 11, 9),  y: 2 }, 
-  {x: +new Date(2024, 11, 10), y: 8 }, 
-  {x: +new Date(2024, 11, 11),  y: 11},
-  {x: +new Date(2024, 11, 12),  y: 12}, 
-  {x: +new Date(2024, 11, 13),  y: 6 },
-  {x: +new Date(2024, 11, 14),  y: 7 }, 
-  {x: +new Date(2024, 11, 15),  y: 9 }, 
-  {x: +new Date(2024, 11, 16),  y: 5 },
-  {x: +new Date(2024, 11, 17),  y: 7 }, 
-  {x: +new Date(2024, 11, 18),  y: 6 },
-  {x: +new Date(2024, 11, 19),  y: 2 }, 
-  {x: +new Date(2024, 11, 20),  y: 8 },
-  {x: +new Date(2024, 11, 21),  y: 11},
-  {x: +new Date(2024, 11, 22),  y: 12}, 
-  {x: +new Date(2024, 11, 23),  y: 6 },
-  {x: +new Date(2024, 11, 24),  y: 7 }, 
-  {x: +new Date(2024, 11, 25),  y: 9 }, 
-  {x: +new Date(2024, 11, 26),  y: 5 },
-  {x: +new Date(2024, 11, 27),  y: 7 }, 
-  {x: +new Date(2024, 11, 28),  y: 6 },
-  {x: +new Date(2024, 11, 29),  y: 2 }, 
-  {x: +new Date(2024, 11, 30), y: 8 }, 
-  {x: +new Date(2024, 12, 1),  y: 11},
-  {x: +new Date(2024, 12, 2),  y: 12}, 
-  {x: +new Date(2024, 12, 3),  y: 6 },
-  {x: +new Date(2024, 12, 4),  y: 7 }, 
-  {x: +new Date(2024, 12, 5),  y: 9 }, 
-  {x: +new Date(2024, 12, 6),  y: 5 },
-  {x: +new Date(2024, 12, 7),  y: 7 }, 
-  {x: +new Date(2024, 12, 8),  y: 6 },
-  {x: +new Date(2024, 12, 9),  y: 2 }, 
-  {x: +new Date(2024, 12, 10), y: 8 }, 
-  {x: +new Date(2024, 12, 11),  y: 11},
-  {x: +new Date(2024, 12, 12),  y: 12}, 
-  {x: +new Date(2024, 12, 13),  y: 6 },
-  {x: +new Date(2024, 12, 14),  y: 7 }, 
-  {x: +new Date(2024, 12, 15),  y: 9 }, 
-  {x: +new Date(2024, 12, 16),  y: 5 },
-  {x: +new Date(2024, 12, 17),  y: 7 }, 
-  {x: +new Date(2024, 12, 18),  y: 6 },
-  {x: +new Date(2024, 12, 19),  y: 2 }, 
-  {x: +new Date(2024, 12, 20),  y: 8 },
-  {x: +new Date(2024, 12, 21),  y: 11},
-  {x: +new Date(2024, 12, 22),  y: 12}, 
-  {x: +new Date(2024, 12, 23),  y: 6 },
-  {x: +new Date(2024, 12, 24),  y: 7 }, 
-  {x: +new Date(2024, 12, 25),  y: 9 }, 
-  {x: +new Date(2024, 12, 26),  y: 5 },
-  {x: +new Date(2024, 12, 27),  y: 7 }, 
-  {x: +new Date(2024, 12, 28),  y: 6 },
-  {x: +new Date(2024, 12, 29),  y: 2 }, 
-  {x: +new Date(2024, 12, 30), y: 8 },   
-]
-
 
   const chartData = computed(()=>{
       return {
@@ -710,36 +653,6 @@ function  zoomBox(min, max){
           maxChart1 = dataset1.value.data[dataset1.value.data.findIndex(item => item.x === staticScaleMax) + difference].x;
           minChart1 = dataset1.value.data[dataset1.value.data.findIndex(item => item.x === staticScaleMin) + difference].x;
         }
-        /*let difference2 = 0;
-        if(dragDelta.movementX > 0){
-          difference2 = 1;
-        }
-        if(dragDelta.movementX < 0){
-          difference2 = -1
-        }*/
-
-/*  
-        let min =  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)
-        let max = new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)
-
-        let minIndex = data.findIndex(item => item.x === min)
-        let maxIndex = data.findIndex(item => item.x === max)
-
-      let minChart1;
-        
-        if (data[minIndex + difference] === undefined){
-          minChart1 = data[0].x
-        } else{
-          minChart1 = data[minIndex + difference].x
-        } 
-        
-        let maxChart1;
-        if (data[maxIndex + difference] === undefined){
-          maxChart1 = data[data.length - 1 ].x
-        } else {
-          maxChart1 = data[maxIndex + difference].x
-        }
-*/
 
        if (minChart1 === dataset1.value.data[0].x){
           chart.config.options.scales.x.min =dataset1.value.data[0].x
@@ -751,8 +664,7 @@ function  zoomBox(min, max){
           chart.config.options.scales.x.min = minChart1;
           chart.config.options.scales.x.max = maxChart1;
         }
-
-         
+        
         chart.update('none')
         smallChart.update('none')
         zoomBoxItem(minChart1, maxChart1)
@@ -761,6 +673,9 @@ function  zoomBox(min, max){
     }
   }
 }
+
+
+
 window.addEventListener('resize', (e) => {
   let chart = lineRef.value.chartInstance;
   let smallChart = smallLineRef.value.chartInstance;
