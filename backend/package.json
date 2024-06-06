@@ -4,6 +4,7 @@
   "description": "cms",
   "main": "server.js",
   "scripts": {
+    "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Beznyakov",
@@ -15,5 +16,9 @@
     "mongodb": "^6.4.0",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.0"
+  },
+  "devDependencies": {
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
   }
 }
