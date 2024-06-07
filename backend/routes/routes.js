@@ -10,7 +10,7 @@ const data = new DataClass();
 route.get('/chart', function(req, res, next){
     console.log('>>get nodes')
     const chart = data.getDefaultData()
-    res.send(data);
+    res.send(chart);
     res.end();
     /*db.getNodes().then((nodes)=>{         
         if(nodes){

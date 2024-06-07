@@ -45,27 +45,27 @@
         }
     }).then(res =>  res.json())
     .then(function(data){
-        console.log(data.arrData)
-        dataset1.value.data = data.arrData
+        console.log(data)
+        dataset1.value.data = data
         
         let chart = lineRef.value.chartInstance;
         let smallChart = smallLineRef.value.chartInstance;
         
-        chart.data.datasets[0].data = data.arrData;
+        chart.data.datasets[0].data = data;
         
-        chart.config.options.scales.x.min = data.arrData[0].x;
-        chart.config.options.scales.x.max = data.arrData[data.arrData.length - 1].x;
+        chart.config.options.scales.x.min = data[0].x;
+        chart.config.options.scales.x.max = data[data.length - 1].x;
 
-        let min = data.arrData.reduce((prev,cur) => cur.y < prev.y? cur : prev);
-        let max = data.arrData.reduce((prev,cur) => cur.y > prev.y? cur : prev);
+        let min = data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
+        let max = data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
         chart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
         chart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
 
-        chart.config.options.plugins.zoom.limits.x.min = data.arrData[0].x;
-        chart.config.options.plugins.zoom.limits.x.max = data.arrData[data.arrData.length - 1].x
+        chart.config.options.plugins.zoom.limits.x.min = data[0].x;
+        chart.config.options.plugins.zoom.limits.x.max = data[data.length - 1].x
 
-        chart.config.options.scales.x.min = data.arrData[0].x;
-        chart.config.options.scales.x.max = data.arrData[data.arrData.length - 1].x;
+        chart.config.options.scales.x.min = data[0].x;
+        chart.config.options.scales.x.max = data[data.length - 1].x;
 
         smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
         smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
