@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [vue()],
   server:{
     proxy: {
-      '/chart':'http://localhost:3000',
+      '/chart':'http://localhost:9000',
     },
   },
   build: {
