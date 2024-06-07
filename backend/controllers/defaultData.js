@@ -4,7 +4,7 @@ const defaultData = class {
         let step = new Date()
         let start = new Date();
         step.setDate(step.getDate() + 1);
-        let lengthSettings = 10;
+        let lengthSettings = 30;
         this.arrData = [];
         let cur = +curr
         let nw = +step
