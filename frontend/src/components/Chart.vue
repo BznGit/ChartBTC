@@ -33,12 +33,14 @@
          pointHoverRadius: 4,
          spanGaps: true,
          data: null,
-         backgroundColor: ['#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd'],
-         pointBorderColor: ['#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd','#0068dd', '#0068dd','#0068dd','#0068dd','#0068dd']
+         pointBorderColor:[],
+         backgroundColor:[]
+
        })
 
   onMounted(() => {
-    fetch('/chart', {
+    const width = window.screen.width
+    fetch(`/chart/${width}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
@@ -52,7 +54,12 @@
         let smallChart = smallLineRef.value.chartInstance;
         
         chart.data.datasets[0].data = data;
-        
+
+        for(let i=0; i<data.length; i++){
+          dataset1.value.pointBorderColor.push('#0068dd');
+          dataset1.value.backgroundColor.push('#0068dd');
+        }
+        console.log(chart.data.datasets[0].pointBorderColor)
         chart.config.options.scales.x.min = data[0].x;
         chart.config.options.scales.x.max = data[data.length - 1].x;
 
@@ -376,7 +383,14 @@
                 chart.config.options.scales['leftyaxis'].max = value.y + value.y*0.1;
                   highlighArrIndex.forEach(index1=>{
                   chart.data.datasets[datasetIndex].data[index1].y = value.y
-                  smallChart.data.datasets[datasetIndex].data[index1].y = value.y
+                  smallChart.data.datasets[datasetIndex].data[index1].y = value.y;
+                  let lim = 1;
+                  let arr = chart.config.data.datasets[datasetIndex].data
+                  let max = arr.reduce((prev,cur) => cur.y > prev.y? cur : prev);
+                  let min = arr.reduce((prev,cur) => cur.y < prev.y? cur : prev);
+            
+                  chart.config.options.scales['leftyaxis'].max = max.y + lim
+                  chart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
                   
                 })
                 chart.update()

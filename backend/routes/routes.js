@@ -7,21 +7,12 @@ const DataClass = require('../controllers/defaultData.js');
 const data = new DataClass();
 
 
-route.get('/chart', function(req, res, next){
-    console.log('>>get nodes')
-    const chart = data.getDefaultData()
+route.get('/chart/:width', function(req, res, next){
+    console.log('>>get chart', req.params.width)
+    const chart = data.getDefaultData(parseInt(req.params.width))
     res.send(chart);
     res.end();
-    /*db.getNodes().then((nodes)=>{         
-        if(nodes){
-            res.send(nodes);
-            res.end();
-        }else{
-            res.statusCode=403;
-            res.send('get nodes request error in router.js');
-            res.end();
-        }
-    })*/
+
 });
 
 route.get('/snapshot/:hash', function(req, res, next){
