@@ -577,12 +577,13 @@ function  zoomBox(min, max){
 
       // left button move -----------------------------------------------------------------------/
       function dragMove(chart, dragDelta){
-        console.log('dragDelta.offsetX = ', dragDelta.offsetX)
+
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
-        let scrollPoint = dataset1.value.data.findIndex((item)=>{if (item.x === dayTimestamp) return true})
+        let scrollPoint = dataset1.value.data.findIndex(item=>item.x === dayTimestamp)
         console.log('scrollPoint first>>', scrollPoint)
-        console.log('data>>', dataset1.value.data, dayTimestamp)
+        console.log('data>>', new Date(dataset1.value.data[0].x).toLocaleDateString(),' | ', new Date(dayTimestamp).toLocaleDateString())
+        console.log('data>>', dataset1.value.data[0].x, dayTimestamp)
         if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
         if(dragDelta.offsetX > right && scrollPoint === -1){
           scrollPoint = dataset1.value.data.findIndex((item) => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1;
