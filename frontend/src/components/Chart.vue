@@ -39,7 +39,8 @@
        })
 
   onMounted(() => {
-    const width = window.screen.width
+    const width = window.screen.width;
+    console.log(typeof width)
     fetch(`/chart/${width}`, {
         method: 'GET',
         headers: {
@@ -47,7 +48,7 @@
         }
     }).then(res =>  res.json())
     .then(function(data){
-        console.log(data)
+        //console.log(data)
         dataset1.value.data = data
         
         let chart = lineRef.value.chartInstance;
@@ -59,7 +60,7 @@
           dataset1.value.pointBorderColor.push('#0068dd');
           dataset1.value.backgroundColor.push('#0068dd');
         }
-        console.log(chart.data.datasets[0].pointBorderColor)
+      
         chart.config.options.scales.x.min = data[0].x;
         chart.config.options.scales.x.max = data[data.length - 1].x;
 
@@ -76,8 +77,8 @@
 
         smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
         smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
-        smallChart.data.datasets[0].data = chart.data.datasets[0].data 
-
+        smallChart.data.datasets[0].data =  data
+        console.log(data)
         smallChart.update('none')
         chart.update()
         
@@ -422,8 +423,8 @@
            labelPointStyle: function(context) {
            let a = context
             if(context){
-             // context.element.options.radius = 4
-              console.log(context.element.options.radius)
+              context.element.options.radius = 4
+             // console.log(context.element.options.radius)
             } else {
               context.element.options.radius = 1
             }
@@ -576,19 +577,19 @@ function  zoomBox(min, max){
 
       // left button move -----------------------------------------------------------------------/
       function dragMove(chart, dragDelta){
-
+        console.log('dragDelta.offsetX = ', dragDelta.offsetX)
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
         let scrollPoint = dataset1.value.data.findIndex(item => item.x == dayTimestamp)
   
-        if(dragDelta.offsetX < left) scrollPoint = 0; 
-        if(dragDelta.offsetX > right ){
+        if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
+        if(dragDelta.offsetX > right && scrollPoint === -1){
           scrollPoint = dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0) ) - 1;
         } 
         if(scrollPoint > dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1) {
           scrollPoint = dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1
         }
-        //console.log( 'left move ->', dataset1.value.data[scrollPoint], scrollPoint)
+        console.log( 'left move ->', dataset1.value.data[scrollPoint], scrollPoint)
         chart.config.options.scales.x.min = dataset1.value.data[scrollPoint].x
         chart.update('none')
         smallChart.update('none');
@@ -609,14 +610,14 @@ function  zoomBox(min, max){
        // console.log(scrollPoint)
 
         if(dragDelta.offsetX > right && scrollPoint === -1) scrollPoint = dataset1.value.data.length - 1; 
-        if(dragDelta.offsetX < left ){
+        if(dragDelta.offsetX < left && scrollPoint === -1){
           console.log('first>',scrollPoint)
           scrollPoint = dataset1.value.data.findIndex(item => item.x == chart.config.options.scales.x.min ) + 1;
         } 
         if(scrollPoint < dataset1.value.data.findIndex(item => item.x == chart.config.options.scales.x.min) + 1 ) {
           scrollPoint = dataset1.value.data.findIndex(item => item.x == chart.config.options.scales.x.min) + 1
         }
-        //console.log( 'right move ->', dataset1.value.data[scrollPoint], scrollPoint)
+        console.log( 'right move ->', dataset1.value.data[scrollPoint], scrollPoint)
         chart.config.options.scales.x.max = dataset1.value.data[scrollPoint].x
         chart.update('none')
         smallChart.update('none');

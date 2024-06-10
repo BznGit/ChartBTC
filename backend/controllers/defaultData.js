@@ -4,7 +4,7 @@ const defaultData = class {
         let step = new Date()
         let start = new Date();
         step.setDate(step.getDate() + 1);
-        this.length = 1000;
+        this.length = 10;
         this.arrData = [];
         let cur = +curr
         let nw = +step
@@ -19,16 +19,18 @@ const defaultData = class {
         }
     }
     getDefaultData(width){
-        console.log(width)
+        console.log('width = ', width)
         let chartArr = [];
        
-        let delta = Math.round(this.length/width   )
-        console.log(delta)
+        let delta = Math.round(this.length / width)*10
+        console.log('delta 0 = ', delta)
+        if(delta < 1) delta = 1*10
+        console.log('delta = ', delta)
         for (let i = 0; i < this.arrData.length-1; i += delta) {
             chartArr.push(this.arrData[i]);
         }
-        console.log(chartArr)
-        return  this.arrData
+        console.log(chartArr.length)
+        return this.arrData// chartArr
     }
 }
 
