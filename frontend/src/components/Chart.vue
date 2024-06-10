@@ -580,16 +580,16 @@ function  zoomBox(min, max){
         console.log('dragDelta.offsetX = ', dragDelta.offsetX)
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
-        let scrollPoint = dataset1.value.data.findIndex(item => item.x == dayTimestamp)
-  
+        let scrollPoint = dataset1.value.data.findIndex(item => item.x === dayTimestamp)
+        console.log('scrollPoint first>>', scrollPoint)
         if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
         if(dragDelta.offsetX > right && scrollPoint === -1){
-          scrollPoint = dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0) ) - 1;
+          scrollPoint = dataset1.value.data.findIndex((item) => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1;
         } 
         if(scrollPoint > dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1) {
           scrollPoint = dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1
         }
-        console.log( 'left move ->', dataset1.value.data[scrollPoint], scrollPoint)
+        console.log( 'left move ->', dataset1.value.data[scrollPoint].x, scrollPoint)
         chart.config.options.scales.x.min = dataset1.value.data[scrollPoint].x
         chart.update('none')
         smallChart.update('none');
