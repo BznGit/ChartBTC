@@ -586,10 +586,10 @@ function  zoomBox(min, max){
         console.log('data>>', dataset1.value.data[0].x, dayTimestamp)
         if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
         if(dragDelta.offsetX > right && scrollPoint === -1){
-          scrollPoint = dataset1.value.data.findIndex((item) => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1;
+          scrollPoint = dataset1.value.data.findIndex((item) => item.x == new Date(chart.config.options.scales.x.max).setHours(3, 0, 0, 0)) - 1;
         } 
-        if(scrollPoint > dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1) {
-          scrollPoint = dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1
+        if(scrollPoint > dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(3, 0, 0, 0)) - 1) {
+          scrollPoint = dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(3, 0, 0, 0)) - 1
         }
         console.log( 'scrollPoint second ->', scrollPoint)
         console.log( 'left move ->', dataset1.value.data[scrollPoint].x)
