@@ -580,7 +580,7 @@ function  zoomBox(min, max){
         console.log('dragDelta.offsetX = ', dragDelta.offsetX)
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
-        let scrollPoint = dataset1.value.data.findIndex(item => item.x === dayTimestamp)
+        let scrollPoint = dataset1.value.data.findIndex((item)=>{if (item.x === dayTimestamp) return true})
         console.log('scrollPoint first>>', scrollPoint)
         if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
         if(dragDelta.offsetX > right && scrollPoint === -1){
