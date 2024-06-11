@@ -7,9 +7,8 @@ const DataClass = require('../controllers/defaultData.js');
 const data = new DataClass();
 
 
-route.get('/chart/:width', function(req, res, next){
-    console.log('>>get chart', req.params.width)
-    const chart = data.getDefaultData(parseInt(req.params.width))
+route.get('/chart', function(req, res, next){
+    const chart = data.getDefaultData(parseInt(req.query.width), parseInt(req.query.timezone))
     res.send(chart);
     res.end();
 

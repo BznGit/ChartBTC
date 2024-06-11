@@ -40,8 +40,9 @@
 
   onMounted(() => {
     const width = window.screen.width;
+    const timeZone = new Date().getTimezoneOffset();
     console.log(typeof width)
-    fetch(`/chart/${width}`, {
+    fetch(`/chart?width=${width}&timezone=${timeZone}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
@@ -579,17 +580,17 @@ function  zoomBox(min, max){
       function dragMove(chart, dragDelta){
 
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
-        const dayTimestamp =+new Date(timestamp).setHours(3, 0, 0, 0)
+        const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
         let scrollPoint = dataset1.value.data.findIndex(item=>item.x === dayTimestamp)
         console.log('scrollPoint first>>', scrollPoint)
         console.log('data>>', new Date(dataset1.value.data[0].x).toLocaleDateString(),' | ', new Date(dayTimestamp).toLocaleDateString())
         console.log('data>>', dataset1.value.data[0].x, dayTimestamp)
         if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
         if(dragDelta.offsetX > right && scrollPoint === -1){
-          scrollPoint = dataset1.value.data.findIndex((item) => item.x == new Date(chart.config.options.scales.x.max).setHours(3, 0, 0, 0)) - 1;
+          scrollPoint = dataset1.value.data.findIndex((item) => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1;
         } 
-        if(scrollPoint > dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(3, 0, 0, 0)) - 1) {
-          scrollPoint = dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(3, 0, 0, 0)) - 1
+        if(scrollPoint > dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1) {
+          scrollPoint = dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1
         }
         console.log( 'scrollPoint second ->', scrollPoint)
         console.log( 'left move ->', dataset1.value.data[scrollPoint].x)
@@ -609,6 +610,7 @@ function  zoomBox(min, max){
       function dragMove(chart, dragDelta){
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
+       
         let scrollPoint = dataset1.value.data.findIndex(item => item.x == dayTimestamp)
        // console.log(scrollPoint)
 
@@ -691,7 +693,6 @@ function  zoomBox(min, max){
     }
   }
 }
-
 
 
 window.addEventListener('resize', (e) => {
