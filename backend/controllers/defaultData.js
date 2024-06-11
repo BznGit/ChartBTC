@@ -3,7 +3,7 @@ const defaultData = class {
         console.log('--', timezone)
         let currTimeZone = new Date().getTimezoneOffset();
         console.log(new Date (timezone).getHours(), new Date (currTimeZone).getHours())
-        let hourDelta = new Date (timezone).getHours() - new Date (currTimeZone).getHours()
+        let hourDelta = (currTimeZone - timezone)/60; 
         console.log('hourDelta = ', hourDelta)
         /*let currentDate = new Date();
         let currentTime = currentDate.getTime();
@@ -19,7 +19,7 @@ const defaultData = class {
         let delta = (nw-cur) 
         for (let i = 0; i < this.length - 1; i++){
             let obj = {
-                x: new Date((+start + delta*i)).setHours(-hourDelta, 0, 0, 0),
+                x: new Date((+start + delta*i)).setHours(hourDelta, 0, 0, 0),
                 y: Math.random()*10
             }
             
