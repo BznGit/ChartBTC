@@ -3,7 +3,7 @@ const defaultData = class {
         console.log('--', timezone)
         let currTimeZone = new Date().getTimezoneOffset();
         console.log(new Date (timezone).getHours(), new Date (currTimeZone).getHours())
-        let hourDelta = (currTimeZone - timezone)/60; 
+        let hourDelta = (currTimeZone - timezone)/60*(-1); 
         console.log('hourDelta = ', hourDelta)
         /*let currentDate = new Date();
         let currentTime = currentDate.getTime();
