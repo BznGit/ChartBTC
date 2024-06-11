@@ -15,7 +15,7 @@ const defaultData = class {
         let delta = (nw-cur) 
         for (let i = 0; i < this.length - 1; i++){
             let obj = {
-                x: new Date((+start + delta*i)-timezone).setHours(0, 0, 0, 0),
+                x: +new Date((+start + delta*i)).setHours(0, 0, 0, 0) - timezone,
                 y: Math.random()*10
             }
             
