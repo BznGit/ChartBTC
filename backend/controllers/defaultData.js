@@ -1,18 +1,15 @@
 const defaultData = class {
     setData(timezone) {
-        console.log('--', timezone)
+
         let currTimeZone = new Date().getTimezoneOffset();
         console.log(new Date (timezone).getHours(), new Date (currTimeZone).getHours())
         let hourDelta = (currTimeZone - timezone)/60*(-1); 
-        console.log('hourDelta = ', hourDelta)
-        /*let currentDate = new Date();
-        let currentTime = currentDate.getTime();
-        let curr = new Date(currentTime - timezone * 60000);*/
+
         let curr = new Date();
         let step = new Date();
         let start = new Date();
         step.setDate(step.getDate() + 1);
-        this.length = 10;
+        this.length = 100;
         this.arrData = [];
         let cur = +curr
         let nw = +step
@@ -39,7 +36,7 @@ const defaultData = class {
             chartArr.push(this.arrData[i]);
         }
         console.log(chartArr.length)
-        return this.arrData// chartArr
+        return this.arrData
     }
 }
 

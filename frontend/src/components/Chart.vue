@@ -7,12 +7,33 @@
 </template>
  <script setup>
   import { LineChart } from "vue-chart-3";
-  import { Chart, registerables } from "chart.js";
+  import { Chart, Tooltip, registerables } from "chart.js";
   import { ref, reactive,   onMounted, computed, watch, onUpdated, defineCustomElement } from 'vue';
   import 'chartjs-adapter-date-fns';
   import 'chartjs-plugin-dragdata'
   import zoomPlugin from 'chartjs-plugin-zoom';
 
+  Tooltip.positioners.myCustomPositioner = function(elements, eventPosition) {
+    // A reference to the tooltip model
+    const tooltip = this;
+    if (elements.length == 0) return {
+      x: 0,
+      y: 0
+    }
+    let centrX = tooltip.chart.chartArea.left + tooltip.chart.chartArea.width / 2;
+    let add = 0; 
+    if( elements[0].element.x > centrX) add = -20; 
+    if( elements[0].element.x < centrX) add = 20; 
+    if( elements[0].element.x == centrX){
+      add = -(tooltip.width + 30); 
+      tooltip.xAlign = 'right'
+    } 
+    return {
+      x: elements[0].element.x + add,
+      y: elements[0].element.y,
+      // You may also include xAlign and yAlign to override those tooltip options.
+    };
+  };
   const props = defineProps({
      idChart: Number,
      from: String, 
@@ -415,10 +436,9 @@
          },
        },
        tooltip: {
-        position: 'average',
+        position: 'myCustomPositioner',
         enabled: true,
         intersect: false,
-        padding: 10,
         usePointStyle: true,
         callbacks: {
            labelPointStyle: function(context) {
@@ -443,8 +463,6 @@
      }, 
      scales: {
        x: {
-         
-     
          type: 'time',       
          time: {
            unit: 'day',
@@ -583,9 +601,11 @@ function  zoomBox(min, max){
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
         let scrollPoint = dataset1.value.data.findIndex(item=>item.x === dayTimestamp)
+        
         console.log('scrollPoint first>>', scrollPoint)
         console.log('data>>', new Date(dataset1.value.data[0].x).toLocaleDateString(),' | ', new Date(dayTimestamp).toLocaleDateString())
         console.log('data>>', dataset1.value.data[0].x, dayTimestamp)
+        
         if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
         if(dragDelta.offsetX > right && scrollPoint === -1){
           scrollPoint = dataset1.value.data.findIndex((item) => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1;
@@ -613,16 +633,22 @@ function  zoomBox(min, max){
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
        
         let scrollPoint = dataset1.value.data.findIndex(item => item.x == dayTimestamp)
-       // console.log(scrollPoint)
+        console.log('rightscrollPoint> ', scrollPoint)
 
-        if(dragDelta.offsetX > right && scrollPoint === -1) scrollPoint = dataset1.value.data.length - 1; 
-        if(dragDelta.offsetX < left && scrollPoint === -1){
-          console.log('first>',scrollPoint)
-          scrollPoint = dataset1.value.data.findIndex(item => item.x == chart.config.options.scales.x.min ) + 1;
-        } 
-        if(scrollPoint < dataset1.value.data.findIndex(item => item.x == chart.config.options.scales.x.min) + 1 ) {
-          scrollPoint = dataset1.value.data.findIndex(item => item.x == chart.config.options.scales.x.min) + 1
+        if(dragDelta.offsetX > right && scrollPoint === -1) {
+          scrollPoint = dataset1.value.data.length - 1; 
+          onsole.log('here1>')
         }
+        if(dragDelta.offsetX < left && scrollPoint === -1){
+          onsole.log('here2>')
+          scrollPoint = dataset1.value.data.findIndex(item => item.x ==  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0) ) + 1;
+        } 
+        if(scrollPoint!=-1 && scrollPoint < dataset1.value.data.findIndex(item => item.x ==  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1 ) {
+          scrollPoint = dataset1.value.data.findIndex(item => item.x ==  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1
+    
+          console.log('here3>')
+        }
+
         console.log( 'right move ->', dataset1.value.data[scrollPoint], scrollPoint)
         chart.config.options.scales.x.max = dataset1.value.data[scrollPoint].x
         chart.update('none')
@@ -641,13 +667,20 @@ function  zoomBox(min, max){
       function dragMoveCenter(chart, dragDelta, staticScaleMin, staticScaleMax){
 
         console.log('center')
-        const dragStartingPoint = x.getValueForPixel(drag.offsetX)
-        const dayStartingPoint = new Date(dragStartingPoint).setHours(0, 0, 0, 0)
-        let dragStart = dataset1.value.data.findIndex(item => item.x == dayStartingPoint)
 
+   
+      /*  minChart1 = chart.config.options.scales.x.min + (x.getValueForPixel(dragDelta.offsetX) - x.getValueForPixel(drag.offsetX))
+        maxChart1 = chart.config.options.scales.x.max + (x.getValueForPixel(dragDelta.offsetX) -  x.getValueForPixel(drag.offsetX))
+        console.log(new Date(x.getValueForPixel(dragDelta.offsetX - drag.offsetX)))
+        chart.config.options.scales.x.min = minChart1;
+        chart.config.options.scales.x.max = maxChart1;*/
         // difference
+         const dragStartingPoint = x.getValueForPixel(drag.offsetX)
+        const dayStartingPoint = new Date(dragStartingPoint).setHours(0, 0, 0, 0)
+             let dragStart = dataset1.value.data.findIndex(item => item.x == dayStartingPoint)
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
-        const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
+
+       const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
         let scrollPoint = dataset1.value.data.findIndex(item => item.x == dayTimestamp)
 
         let difference = scrollPoint - dragStart;
@@ -663,11 +696,12 @@ function  zoomBox(min, max){
        
         let minChart1;
         let maxChart1;
-        if (minVal < 0){
+        console.log(scrollPoint)
+        if (minVal < 0 ){
           minChart1 = dataset1.value.data[0].x;
           maxChart1 = dataset1.value.data[range].x ;
              
-        } else if (maxVal >= dataset1.value.data.length - 1 || difference < 0 && dragDelta.offsetX >= right){
+        } else if (maxVal >= dataset1.value.data.length - 1 || difference < 0 && dragDelta.offsetX >= right ){
           minChart1 = dataset1.value.data[dataset1.value.data.length - 1 - range].x ;
           maxChart1 = dataset1.value.data[dataset1.value.data.length - 1].x;
         } else {
@@ -675,19 +709,20 @@ function  zoomBox(min, max){
           minChart1 = dataset1.value.data[dataset1.value.data.findIndex(item => item.x === staticScaleMin) + difference].x;
         }
 
-       if (minChart1 === dataset1.value.data[0].x){
+       if (minChart1 === dataset1.value.data[0].x  ){
           chart.config.options.scales.x.min =dataset1.value.data[0].x
           chart.config.options.scales.x.max = chart.config.options.scales.x.max
-        } else  if(maxChart1 === dataset1.value.data[dataset1.value.data.length - 1].x){
+        } else  if(maxChart1 === dataset1.value.data[dataset1.value.data.length - 1].x ){
           chart.config.options.scales.x.min = chart.config.options.scales.x.min
           chart.config.options.scales.x.max = dataset1.value.data[dataset1.value.data.length - 1].x
-        } else if(chart.config.options.scales.x.min >= dataset1.value.data[0].x  &&  chart.config.options.scales.x.max <=  dataset1.value.data[dataset1.value.data.length - 1].x){
+        } else if(chart.config.options.scales.x.min >= dataset1.value.data[0].x   &&  chart.config.options.scales.x.max <=  dataset1.value.data[dataset1.value.data.length - 1].x){
           chart.config.options.scales.x.min = minChart1;
           chart.config.options.scales.x.max = maxChart1;
         }
         
         chart.update('none')
         smallChart.update('none')
+        console.log('->')
         zoomBoxItem(minChart1, maxChart1)
 
       }
