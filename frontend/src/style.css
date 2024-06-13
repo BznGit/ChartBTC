@@ -35,23 +35,54 @@ h1 {
   line-height: 1.1;
 }
 
-button {
-  border-radius: 8px;
+.menu{
+  display: flex;
+  justify-content: space-between;
+ 
+}
+.menu-inputs{
+  margin-left: 50px;
+}
+.menu input {
+  width: 50px;
+}
+.menu select{
+  text-align: center;
+  width: 50px;
+  margin-left: 10px;
+}
+.zoom-items{
+  display: flex;
+  justify-content: space-between;
+}
+
+
+label{
+  margin-right: 10px;
+  height: 50px;
+  border-radius: 19px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #ece7e7;
+  color: #868484;
   cursor: pointer;
   transition: border-color 0.25s;
+  transition: background-color 0.25s;
 }
-button:hover {
-  border-color: #646cff;
+label:hover {
+  border-color: #cccccc;
+  background-color: #cccccc;
+  color: #fafafa;
 }
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+input[type=radio] {
+	display: none;
+}
+input[type="radio"]:checked + label {
+  border-color: #0068dd;
+  background-color: #0068dd;
 }
 
 .card {

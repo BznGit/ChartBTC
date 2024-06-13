@@ -8,10 +8,9 @@ const data = new DataClass();
 
 
 route.get('/chart', function(req, res, next){
-    const chart = data.getDefaultData(parseInt(req.query.width), parseInt(req.query.timezone))
+    const chart = data.getDefaultData( req.query.division, parseInt(req.query.width), parseInt(req.query.timezone))
     res.send(chart);
-    res.end();
-
+    res.end(); 
 });
 
 route.get('/snapshot/:hash', function(req, res, next){

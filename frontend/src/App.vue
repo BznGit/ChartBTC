@@ -1,9 +1,12 @@
 <script setup>
+
+
   import Chart from './components/Chart.vue'
 </script>
 
 <template>
 <div class="chart">
+  
   <Chart />
 
 </div>
@@ -13,6 +16,6 @@
 <style scoped>
 .chart{
   height: 80vh;
-   width:  60vw
+   width:  90vw
 }
 </style>
