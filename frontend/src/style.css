@@ -88,10 +88,17 @@ input[type="radio"]:checked + label {
 .card {
   padding: 2em;
 }
-
+.chart{
+  margin-left: auto;
+  margin-right: auto;
+  height: 70vh;
+  width:  70vw;
+}
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+  justify-content: center;
   padding: 2rem;
   text-align: center;
 }

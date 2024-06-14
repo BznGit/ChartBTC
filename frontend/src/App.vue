@@ -14,8 +14,5 @@
 </template>
 
 <style scoped>
-.chart{
-  height: 80vh;
-   width:  90vw
-}
+
 </style>
