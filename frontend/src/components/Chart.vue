@@ -631,7 +631,7 @@ function  zoomBox(min, max){
         console.log(timeZone/60)
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
-        let scrollPoint = dataset1.value.data.findIndex(item=>item.x === dayTimestamp)
+        let scrollPoint = findClosestNumber(dataset1.value.data, dayTimestamp)
         
         console.log('scrollPoint first>>', scrollPoint)
         console.log('data>>', new Date(dataset1.value.data[0].x).toLocaleDateString(),' | ', new Date(dayTimestamp).toLocaleDateString())
@@ -639,10 +639,10 @@ function  zoomBox(min, max){
         
         if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
         if(dragDelta.offsetX > right && scrollPoint === -1){
-          scrollPoint = dataset1.value.data.findIndex((item) => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1;
+          scrollPoint = findClosestNumber(dataset1.value.data,new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1;
         } 
-        if(scrollPoint > dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1) {
-          scrollPoint = dataset1.value.data.findIndex(item => item.x == new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1
+        if(scrollPoint > findClosestNumber(dataset1.value.data,new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1) {
+          scrollPoint = findClosestNumber(dataset1.value.data,new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1
         }
         console.log( 'scrollPoint second ->', scrollPoint)
         console.log( 'left move ->', dataset1.value.data[scrollPoint].x)
@@ -663,7 +663,7 @@ function  zoomBox(min, max){
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
        
-        let scrollPoint = dataset1.value.data.findIndex(item => item.x == dayTimestamp)
+        let scrollPoint = findClosestNumber(dataset1.value.data, dayTimestamp)
         console.log('rightscrollPoint> ', scrollPoint)
 
         if(dragDelta.offsetX > right && scrollPoint === -1) {
@@ -672,10 +672,10 @@ function  zoomBox(min, max){
         }
         if(dragDelta.offsetX < left && scrollPoint === -1){
           onsole.log('here2>')
-          scrollPoint = dataset1.value.data.findIndex(item => item.x ==  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0) ) + 1;
+          scrollPoint = findClosestNumber(dataset1.value.data, new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0) ) + 1;
         } 
-        if(scrollPoint!=-1 && scrollPoint < dataset1.value.data.findIndex(item => item.x ==  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1 ) {
-          scrollPoint = dataset1.value.data.findIndex(item => item.x ==  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1
+        if(scrollPoint!=-1 && scrollPoint < findClosestNumber(dataset1.value.data, new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1 ) {
+          scrollPoint = findClosestNumber(dataset1.value.data,  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1
     
           console.log('here3>')
         }
@@ -714,12 +714,12 @@ function  zoomBox(min, max){
         // difference
         const dragStartingPoint = x.getValueForPixel(drag.offsetX)
         const dayStartingPoint = new Date(dragStartingPoint).setHours(0, 0, 0, 0);
-        let dragStart = dataset1.value.data.findIndex(item => item.x == dayStartingPoint);
+        let dragStart = findClosestNumber(dataset1.value.data, dayStartingPoint);
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
-
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0);
-        let scrollPoint = dataset1.value.data.findIndex(item => item.x == dayTimestamp);
-        if(scrollPoint ===-1) scrollPoint = oldScrollPoint; else oldScrollPoint = scrollPoint
+     
+        let scrollPoint = findClosestNumber(dataset1.value.data, dayTimestamp)
+       // if(scrollPoint ===-1) scrollPoint = oldScrollPoint; else oldScrollPoint = scrollPoint
         
 
         let difference = scrollPoint - dragStart;
@@ -728,10 +728,10 @@ function  zoomBox(min, max){
           scrollPoint = dataset1.value.data.length - 1;
         };
 
-        const range = dataset1.value.data.findIndex(item => item.x === staticScaleMax) - dataset1.value.data.findIndex(item => item.x === staticScaleMin)
+        const range = findClosestNumber(dataset1.value.data, staticScaleMax) - findClosestNumber(dataset1.value.data, staticScaleMin)
         
-        const minVal = dataset1.value.data.findIndex(item => item.x === staticScaleMax) + difference - range; // 0
-        const maxVal = dataset1.value.data.findIndex(item => item.x === staticScaleMax) + difference; // 0
+        const minVal = findClosestNumber(dataset1.value.data, staticScaleMax) + difference - range; // 0
+        const maxVal = findClosestNumber(dataset1.value.data, staticScaleMax) + difference; // 0
        
         let minChart1;
         let maxChart1;
@@ -744,8 +744,8 @@ function  zoomBox(min, max){
           minChart1 = dataset1.value.data[dataset1.value.data.length - 1 - range].x ;
           maxChart1 = dataset1.value.data[dataset1.value.data.length - 1].x;
         } else {
-          maxChart1 = dataset1.value.data[dataset1.value.data.findIndex(item => item.x === staticScaleMax) + difference].x;
-          minChart1 = dataset1.value.data[dataset1.value.data.findIndex(item => item.x === staticScaleMin) + difference].x;
+          maxChart1 = dataset1.value.data[findClosestNumber(dataset1.value.data, staticScaleMax) + difference].x;
+          minChart1 = dataset1.value.data[findClosestNumber(dataset1.value.data, staticScaleMin) + difference].x;
         }
 
         if(minChart1 === dataset1.value.data[0].x){
@@ -769,6 +769,21 @@ function  zoomBox(min, max){
   }
 }
 
+function findClosestNumber(arr, target) {
+  let closest = arr[0];
+  let minDifference = Math.abs(target - arr[0].x);
+
+  for (let i = 1; i < arr.length; i++) {
+    let difference = Math.abs(target - arr[i].x);
+    if (difference < minDifference) {
+      minDifference = difference;
+      closest = arr[i];
+    }
+  }
+  const index = arr.indexOf(closest)
+  console.log('func:', closest, arr.indexOf(closest))
+  return index
+}
 
 window.addEventListener('resize', (e) => {
   let chart = lineRef.value.chartInstance;
