@@ -9,7 +9,7 @@
         <option value='decrement'>-</option>
       </select>
     </div>
-    <div class="menu-zoom-items">
+    <div class="zoom-items">
       <input type="radio" id="day" v-model="division" value="day" @change="divisionOnChange"/>
       <label for="day" class="checked">День</label>
       <input type="radio" id="week" v-model="division" value="week" @change="divisionOnChange"/>  
