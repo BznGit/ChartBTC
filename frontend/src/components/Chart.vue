@@ -36,7 +36,7 @@
   const selected = ref('set')
   const division = ref('week')
 
-
+  
   Tooltip.positioners.myCustomPositioner = function(elements, eventPosition) {
     // A reference to the tooltip model
     const tooltip = this;
@@ -48,13 +48,14 @@
     let add = 0; 
     if( elements[0].element.x > centrX) add = -20; 
     if( elements[0].element.x < centrX) add = 20; 
-    if( elements[0].element.x == centrX){
+    if( elements[0].element.x > centrX-5 && elements[0].element.x <= centrX+5){
       add = -(tooltip.width + 30); 
       tooltip.xAlign = 'right'
     } 
     return {
       x: elements[0].element.x + add,
       y: elements[0].element.y,
+     
       // You may also include xAlign and yAlign to override those tooltip options.
     };
   };
@@ -93,7 +94,7 @@
         }
     }).then(res => res.json()).then(function (data){
       dataset1.value.data = data
-        
+      console.log(data)
         let chart = lineRef.value.chartInstance;
         let smallChart = smallLineRef.value.chartInstance;
         
@@ -125,17 +126,32 @@
         smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
         smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
         smallChart.data.datasets[0].data =  data
-        console.log(data)
+    
         smallChart.update('none')
         chart.update()
         
         zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max) 
     })
+  };
 
+  function setNewData(data, division){
+    fetch('/setchart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({
+          chart: data,
+          division: division
+        })
+    }).then( res=>res.ok ? res.json():res.text()).then(data=>console.log(data))
   }
 
   function divisionOnChange(){
-    getDataDivision(division.value)
+    let chart = lineRef.value.chartInstance;
+    let data = chart.data.datasets[0].data 
+    setNewData(data, division.value)
+   // getDataDivision(division.value)
   }
   onMounted(() => {
     getDataDivision(division.value)
@@ -265,7 +281,7 @@
           ctx.moveTo(line.startX, line.startY);
           ctx.lineTo(line.endX, line.endY);
           ctx.stroke();
-    
+  
         })
         ctx.fillStyle = 'grey';
         const textWidthX = ctx.measureText(new Date(x.getValueForPixel(crosshair[1].startX)).toDateString()).width ;
@@ -311,11 +327,7 @@
           },
         ];
         args.changed = true;
-      }   
-      
-      
-
-
+      }    
     }
 }
   const plugin = {
@@ -335,24 +347,36 @@
       const {ctx } = chart
       const {top, bottom, left, right} = chart.chartArea
       const {tooltip} = args
-
+         
       const x = tooltip?.caretX
       const y = tooltip?.caretY
       if (!x) return
-      ctx.save()
-      ctx.beginPath()
-      ctx.setLineDash([5, 3])
-      ctx.strokeStyle = '#ff0000';
-      ctx.moveTo(x, top)
-      ctx.lineTo(x, bottom)
-      ctx.moveTo(left, y)
-      ctx.lineTo(right, y)
+    
+      ctx.lineWidth = 2;
+      ctx.fillStyle = 'red';
+      ctx.setLineDash([0, 0])
+      let add = 0
+      if(!tooltip) return
+      let centrX = tooltip.chart.chartArea.left + tooltip.chart.chartArea.width / 2;
+      if(tooltip.xAlign =='left') add = -20
+      if(tooltip.xAlign =='right') add =  20
+      if( x > centrX-5 && tooltip.xAlign =='left'){
+      add = -(tooltip.width + 60 ); 
+
+    } 
+ 
+      ctx.beginPath();
+      ctx.strokeStyle = '#0068dd';
+      ctx.arc(x + add, y, 6, 0, Math.PI / 180 * 360);
+      //ctx.fillStyle = "red";
+    
+      ctx.fill();
+      ctx.closePath();
       ctx.stroke()
-      ctx.restore()
     }
   }
 
-  Chart.register(crosshairLabel, rectangel, zoomPlugin, ...registerables);
+  Chart.register(plugin, crosshairLabel, rectangel, zoomPlugin, ...registerables);
 
   let chartOptions = computed(()=>{
     return {
@@ -370,7 +394,7 @@
        intersect: true,
      },
      hover: {
-            intersect: false,
+            intersect: true,
             mode: 'dataset',
         },
         onHover: function(e) {
@@ -470,27 +494,26 @@
         position: 'myCustomPositioner',
         enabled: true,
         intersect: false,
-        usePointStyle: true,
+        usePointStyle: false,
         callbacks: {
-           labelPointStyle: function(context) {
-           let a = context
-            if(context){
-              context.element.options.radius = 4
-             // console.log(context.element.options.radius)
-            } else {
-              context.element.options.radius = 1
+          labelPointStyle: function(context) {
+            return {
+              pointStyle: 'circule',
+              rotation: 0
             }
-             return {
-               pointStyle: 'circule',
-               rotation: 0, 
-               radius: 10
-             };
-           },
-           label: function(tooltipItems) {
-             return 'Hashrate: '  + tooltipItems.parsed.y + ' ' + props.koef;
-           }
-         }
-       }
+          },
+          usePointStyle: function(context) {
+                        return {
+                          backgroundColor: 'red',
+                           pointStyle: 'circule',
+                        }
+                      },
+          label: function(tooltipItems) {
+              return 'Hashrate: '  + tooltipItems.parsed.y + ' ' + props.koef;
+          },
+
+        }
+      }
      }, 
      scales: {
        x: {

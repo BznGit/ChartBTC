@@ -12,6 +12,11 @@ route.get('/chart', function(req, res, next){
     res.send(chart);
     res.end(); 
 });
+route.post('/setchart', function(req, res, next){
+    const newchart = data.getNewData(req.body.chart, req.body.division );
+    res.send(newchart);
+    res.end(); 
+});
 
 route.get('/snapshot/:hash', function(req, res, next){
     //console.log('/snapshot: ', req.params.hash)

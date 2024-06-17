@@ -5,12 +5,9 @@
 </script>
 
 <template>
-<div class="chart">
-  
-  <Chart />
-
-</div>
- 
+  <div class="chart">
+    <Chart/>
+  </div>
 </template>
 
 <style scoped>

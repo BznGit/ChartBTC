@@ -6,6 +6,7 @@ export default defineConfig({
   server:{
     proxy: {
       '/chart':'http://localhost:9000',
+      '/setchart':'http://localhost:9000',
     },
   },
   build: {
