@@ -4,17 +4,17 @@
     <div class="menu-inputs">
       <input type="number"  @input="setHightlightHashrate" v-model="hightlightHashrate">
       <select v-model="selected">
-        <option  value='set'>=</option>
+        <option value='set'>=</option>
         <option value='increment'>+</option>
         <option value='decrement'>-</option>
       </select>
     </div>
     <div class="zoom-items">
-      <input type="radio" id="day" v-model="division" value="day" @change="divisionOnChange"/>
+      <input type="radio" id="day" v-model="division" value="day" />
       <label for="day" class="checked">День</label>
-      <input type="radio" id="week" v-model="division" value="week" @change="divisionOnChange"/>  
+      <input type="radio" id="week" v-model="division" value="week" />  
       <label for="week">Неделя</label> 
-      <input type="radio" id="month" v-model="division" value="month" @change="divisionOnChange"/>
+      <input type="radio" id="month" v-model="division" value="month" />
       <label for="month">Месяц</label>    
     </div>  
   </div>
@@ -34,8 +34,17 @@
   const lineRef = ref()
   const hightlightHashrate = ref() 
   const selected = ref('set')
-  const division = ref('week')
+  const division = ref('day')
+  const loading = ref(false)
+  const dataChanged = ref(false)
 
+  watch(division, (newDevision, oldDivision) => {
+    console.log('watch!', newDevision, oldDivision)
+    let chart = lineRef.value.chartInstance;
+    let data = chart.data.datasets[0].data;
+    if (dataChanged.value) getNewData(data, newDevision, oldDivision); else getDataDivision(newDevision, false)
+
+  })
   
   Tooltip.positioners.myCustomPositioner = function(elements, eventPosition) {
     // A reference to the tooltip model
@@ -82,79 +91,87 @@
          pointBorderColor:[],
          backgroundColor:[]
   })
- 
-  function getDataDivision(division){
+
+  // ============================= API REQWESTS ============================= //
+  
+  function getDataDivision(division, def){
     const width = window.screen.width;
     const timeZone = new Date().getTimezoneOffset();
+    def = +def
 
-    fetch(`/chart?division=${division}&width=${width}&timezone=${timeZone}`, {
+    fetch(`/chart?division=${division}&width=${width}&timezone=${timeZone}&def=${def}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
         }
-    }).then(res => res.json()).then(function (data){
-      dataset1.value.data = data
-      console.log(data)
-        let chart = lineRef.value.chartInstance;
-        let smallChart = smallLineRef.value.chartInstance;
-        
-        chart.data.datasets[0].data = data;
-
-        for(let i=0; i<data.length; i++){
-          dataset1.value.pointBorderColor.push('#0068dd');
-          dataset1.value.backgroundColor.push('#0068dd');
-        }
-      
-        chart.config.options.scales.x.min = data[0].x;
-        chart.config.options.scales.x.max = data[data.length - 1].x;
-
-        let min = data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
-        let max = data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
-        chart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
-        chart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
-
-    
-
-        console.log( smallChart.config.options.scales.x.time.unit)
-
-        chart.config.options.plugins.zoom.limits.x.min = data[0].x;
-        chart.config.options.plugins.zoom.limits.x.max = data[data.length - 1].x
-
-        chart.config.options.scales.x.min = data[0].x;
-        chart.config.options.scales.x.max = data[data.length - 1].x;
-
-        smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
-        smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
-        smallChart.data.datasets[0].data =  data
-    
-        smallChart.update('none')
-        chart.update()
-        
-        zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max) 
     })
+    .then(res => res.json())
+    .then(data=> updateChart(data))
   };
 
-  function setNewData(data, division){
-    fetch('/setchart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify({
-          chart: data,
-          division: division
-        })
-    }).then( res=>res.ok ? res.json():res.text()).then(data=>console.log(data))
+  async function getNewData(data, newDivision, oldDivision){
+    try {
+      loading.value = true
+      await fetch('/setchart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+          },
+          body: JSON.stringify({
+            chart: data,
+            newDivision: newDivision,
+            oldDivision: oldDivision
+          })
+      }).then( res=>res.ok? res.json():res.text())
+      .then(data => updateChart(data))
+    } catch (error){
+      console.log('getNtwDAta func feych error', error)
+    }finally{
+      loading.value = false
+    }
   }
 
-  function divisionOnChange(){
+  // Update chart ------------------------------------------------------ 
+  function updateChart(data){
+    dataset1.value.data = data
+    console.log(data)
     let chart = lineRef.value.chartInstance;
-    let data = chart.data.datasets[0].data 
-    setNewData(data, division.value)
-   // getDataDivision(division.value)
+    let smallChart = smallLineRef.value.chartInstance;
+    
+    chart.data.datasets[0].data = data;
+
+    for(let i=0; i<data.length; i++){
+      dataset1.value.pointBorderColor.push('#0068dd');
+      dataset1.value.backgroundColor.push('#0068dd');
+    }
+  
+    chart.config.options.scales.x.min = data[0].x;
+    chart.config.options.scales.x.max = data[data.length - 1].x;
+
+    let min = data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
+    let max = data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
+    chart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
+    chart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
+
+    chart.config.options.plugins.zoom.limits.x.min = data[0].x;
+    chart.config.options.plugins.zoom.limits.x.max = data[data.length - 1].x
+
+    chart.config.options.scales.x.min = data[0].x;
+    chart.config.options.scales.x.max = data[data.length - 1].x;
+
+    smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
+    smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
+    smallChart.data.datasets[0].data =  data
+
+    smallChart.update('none')
+    chart.update()
+    
+    zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max) 
   }
+
+
   onMounted(() => {
-    getDataDivision(division.value)
+    getDataDivision(division.value, true)
   });
 
   function setHightlightHashrate(event){
@@ -170,6 +187,7 @@
     smallChart.update('none')
     zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max ) 
   }
+
   let highlighArrIndex = [];
   function highlightDatasetsPoints(setData){
     let chart = lineRef.value.chartInstance;
@@ -479,7 +497,7 @@
             }
           },
           onDragEnd: function (e, datasetIndex, index, value) {
-
+            dataChanged.value = true;
           },
         },
 

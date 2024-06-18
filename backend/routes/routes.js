@@ -8,12 +8,12 @@ const data = new DataClass();
 
 
 route.get('/chart', function(req, res, next){
-    const chart = data.getDefaultData( req.query.division, parseInt(req.query.width), parseInt(req.query.timezone))
+    const chart = data.getDefaultData( req.query.division, parseInt(req.query.width), parseInt(req.query.timezone), parseInt(req.query.def))
     res.send(chart);
     res.end(); 
 });
 route.post('/setchart', function(req, res, next){
-    const newchart = data.getNewData(req.body.chart, req.body.division );
+    const newchart = data.getNewData(req.body.chart, req.body.newDivision, req.body.oldDivision );
     res.send(newchart);
     res.end(); 
 });
