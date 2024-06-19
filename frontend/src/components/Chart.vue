@@ -106,24 +106,19 @@
         }
     })
     .then(res => res.json())
-    .then(data=> updateChart(data))
+    .then(data=> updateChart(data, true))
   };
 
-  async function getNewData(data, newDivision, oldDivision){
+  async function startFetch(min, max){
     try {
       loading.value = true
-      await fetch('/setchart', {
-          method: 'POST',
+      await fetch(`/getchunk?min=${min}&max=${max}`, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json;charset=utf-8'
           },
-          body: JSON.stringify({
-            chart: data,
-            newDivision: newDivision,
-            oldDivision: oldDivision
-          })
       }).then( res=>res.ok? res.json():res.text())
-      .then(data => updateChart(data))
+      .then(data => updateChart(data, false))
     } catch (error){
       console.log('getNtwDAta func feych error', error)
     }finally{
@@ -132,12 +127,12 @@
   }
 
   // Update chart ------------------------------------------------------ 
-  function updateChart(data){
+  function updateChart(data, def){
     dataset1.value.data = data
     console.log(data)
     let chart = lineRef.value.chartInstance;
     let smallChart = smallLineRef.value.chartInstance;
-    
+    console.log(chart)
     chart.data.datasets[0].data = data;
 
     for(let i=0; i<data.length; i++){
@@ -161,7 +156,8 @@
 
     smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
     smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
-    smallChart.data.datasets[0].data =  data
+    
+    if(def) smallChart.data.datasets[0].data =  data
 
     smallChart.update('none')
     chart.update()
@@ -441,7 +437,7 @@
             let chart = lineRef.value.chartInstance;
             zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
           },
-
+       
           wheel: {
             enabled: true,
           },
@@ -690,6 +686,7 @@ function  zoomBox(min, max){
         chart.config.options.scales.x.min = dataset1.value.data[scrollPoint].x
         chart.update('none')
         smallChart.update('none');
+        startFetch(dataset1.value.data[scrollPoint].x, chart.config.options.scales.x.max)
         zoomBoxItem(dataset1.value.data[scrollPoint].x, chart.config.options.scales.x.max)
       }
     };
@@ -725,6 +722,7 @@ function  zoomBox(min, max){
         chart.config.options.scales.x.max = dataset1.value.data[scrollPoint].x
         chart.update('none')
         smallChart.update('none');
+        startFetch(chart.config.options.scales.x.min, dataset1.value.data[scrollPoint].x)
         zoomBoxItem(chart.config.options.scales.x.min, dataset1.value.data[scrollPoint].x)   
       }
     }
@@ -803,6 +801,7 @@ function  zoomBox(min, max){
         chart.update('none')
         smallChart.update('none')
         console.log('->')
+        startFetch(minChart1, maxChart1)
         zoomBoxItem(minChart1, maxChart1)
 
       }

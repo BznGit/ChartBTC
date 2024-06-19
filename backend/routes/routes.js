@@ -2,7 +2,6 @@ const express = require('express');
 const route = express.Router();
 const DbController = require('../controllers/dbController');
 const db = new DbController();
-
 const DataClass = require('../controllers/defaultData.js');
 const data = new DataClass();
 
@@ -12,9 +11,10 @@ route.get('/chart', function(req, res, next){
     res.send(chart);
     res.end(); 
 });
-route.post('/setchart', function(req, res, next){
-    const newchart = data.getNewData(req.body.chart, req.body.newDivision, req.body.oldDivision );
-    res.send(newchart);
+route.get('/getchunk', function(req, res, next){
+    console.log(req.query.min)
+    const chart = data.fetchData(parseInt(req.query.min), parseInt(req.query.max))
+    res.send(chart);
     res.end(); 
 });
 
