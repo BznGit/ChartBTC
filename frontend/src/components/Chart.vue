@@ -132,7 +132,7 @@
     console.log(data)
     let chart = lineRef.value.chartInstance;
     let smallChart = smallLineRef.value.chartInstance;
-    console.log(chart)
+   
     chart.data.datasets[0].data = data;
 
     for(let i=0; i<data.length; i++){
@@ -436,6 +436,14 @@
           onZoom: ()=>{
             let chart = lineRef.value.chartInstance;
             zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
+          },
+          onZoomComplete: ()=>{
+            let chart = lineRef.value.chartInstance;
+          
+            const min = findClosestNumber(dataset1.value.data, new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0));
+            const max = findClosestNumber(dataset1.value.data, new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0));
+            console.log(dataset1.value.data[min], dataset1.value.data[max])
+            startFetch(dataset1.value.data[min].x, dataset1.value.data[max].x)
           },
        
           wheel: {
