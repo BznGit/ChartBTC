@@ -7,6 +7,7 @@ export default defineConfig({
     proxy: {
       '/chart':'http://localhost:9000',
       '/getchunk':'http://localhost:9000',
+      '/update':'http://localhost:9000',
     },
   },
   build: {

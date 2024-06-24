@@ -10,7 +10,7 @@ const defaultData = class {
 
         // get days array ----------------------------------------------------------------/
         step.setDate(step.getDate() + 1);
-        this.lengthDays = 1000;
+        this.lengthDays = 100;
         this.arrDays = [];
         let cur = +curr;
         let nw = +step;
@@ -48,7 +48,7 @@ const defaultData = class {
             data.push(this.arrDays[i]);
             i += step;
             }
-            return {small: data, big: this.arrDays}
+            return {small: data, big: this.arrDays, step: step}
         };
         if (division === 'week') return this.arrWeeks;
         if (division === 'month') return this.arrMonths;
@@ -62,6 +62,7 @@ const defaultData = class {
         const step = Math.max(1, Math.round((max - min) / 10000000000));
         const data = [];
         let i = 0;
+        console.log('step=',step)
         while (i < this.arrDays.length && this.arrDays[i].x < min) {
             i++;
           }
@@ -73,24 +74,34 @@ const defaultData = class {
             data.push(this.arrDays[i])
         }*/
         console.log(data)
-        return {small: data, big: this.arrDays}
+        return {small: data, big: this.arrDays, step: step}
+    }
+    updateData(arr, step){
+        console.log(arr, step)
+
+        let index1 = this.arrDays.findIndex(item => item.x === arr[0].x)
+        let index2 = this.arrDays.findIndex(item => item.x === arr[arr.length -1].x)
+        console.log(index1, index2)
+        let startIndex = null;
+        let endIndex = null
+        if(step == 1) {
+            startIndex = index1 - 1;
+            endIndex = index2 + 1
+        } else {
+            startIndex = index1 - Math.trunc(step / 2);
+            endIndex = index2 + Math.trunc(step / 2)
+        }
+        console.log(startIndex, endIndex)
+        if(startIndex < 0) startIndex = 0; 
+        if(startIndex > this.arrDays.length - 1) startIndex = this.arrDays.length - 1; 
+        for(let i = startIndex; i <= endIndex; i++){
+            this.arrDays[i].y = arr[0].y 
+        }
+        console.log(this.arrDays)
+       
     }
 
-    findClosestNumber(arr, target) {
-        let closest = arr[0];
-        let minDifference = Math.abs(target - arr[0].x);
-      
-        for (let i = 1; i < arr.length; i++) {
-          let difference = Math.abs(target - arr[i].x);
-          if (difference < minDifference) {
-            minDifference = difference;
-            closest = arr[i];
-          }
-        }
-        const index = arr.indexOf(closest)
-       // console.log('func:', closest, arr.indexOf(closest))
-        return index
-    }
+
 }
 
 module.exports = defaultData;

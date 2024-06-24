@@ -17,6 +17,10 @@ route.get('/getchunk', function(req, res, next){
     res.send(chart);
     res.end(); 
 });
+route.post('/update', function(req, res, next){
+    data.updateData(req.body.changedPointsArr, req.body.step)
+    res.end(); 
+});
 
 route.get('/snapshot/:hash', function(req, res, next){
     //console.log('/snapshot: ', req.params.hash)

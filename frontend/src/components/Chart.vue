@@ -37,12 +37,13 @@
   const division = ref('day')
   const loading = ref(false)
   const dataChanged = ref(false)
-
+  const step = ref()
+  let changedPointsArr = ref([])
   watch(division, (newDevision, oldDivision) => {
     console.log('watch!', newDevision, oldDivision)
     let chart = lineRef.value.chartInstance;
     let data = chart.data.datasets[0].data;
-    if (dataChanged.value) getNewData(data, newDevision, oldDivision); else getDataDivision(newDevision, false)
+   // if (dataChanged.value) getNewData(data, newDevision, oldDivision); else getDataDivision(newDevision, false)
 
   })
   
@@ -108,6 +109,7 @@
     .then(res => res.json())
     .then(data=> updateChart(data, true))
   };
+
   let k = 0
   function startFetch(min, max){
     console.log(k++)
@@ -127,14 +129,34 @@
     }
   }
 
+  function updateData(){
+    console.log(changedPointsArr.value, step.value)
+    try {
+      loading.value = true
+      fetch(`/update`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+          },
+          body: JSON.stringify({changedPointsArr: changedPointsArr.value, step: step.value})
+      }).then( res=>res.ok? console.log('updated'):console.log('not updated'))
+      
+    } catch (error){
+      console.log('update func feych error', error)
+    }finally{
+      loading.value = false
+    }
+
+  }
 
 
   // Update chart ------------------------------------------------------ 
-  function updateChart(allDdata, def){
-    let data = allDdata.small;
-    let data1 = allDdata.big
+  function updateChart(allData, def){
+    let data = allData.small;
+    let data1 = allData.big;
+    step.value = allData.step
     dataset1.value.data = data
-    console.log(data)
+    console.log(allData)
     let chart = lineRef.value.chartInstance;
     let smallChart = smallLineRef.value.chartInstance;
    
@@ -513,20 +535,24 @@
           },
           onDrag: function (e, datasetIndex, index, value) {
             hightlightHashrate.value = value.y
+            
             if (highlighArrIndex.length!=0){
               let chart = lineRef.value.chartInstance;
               let smallChart = smallLineRef.value.chartInstance;
               let point = +value.x
               console.log(highlighArrIndex)
+              
               let left = +chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x;
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
               if((left <= point &&  point <= right) || (left >= point &&  point >= right)){
                 hightlightHashrate.value = value.y
                 chart.config.options.scales['leftyaxis'].max = value.y + value.y*0.1;
-                  highlighArrIndex.forEach(index1=>{
+                changedPointsArr.value =[]
+                highlighArrIndex.forEach(index1=>{
                   let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index1].x) 
                   chart.data.datasets[datasetIndex].data[index1].y = value.y
                   smallChart.data.datasets[datasetIndex].data[indexNear].y = value.y;
+                  changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
                   let lim = 1;
                   let arr = chart.config.data.datasets[datasetIndex].data
                   let max = arr.reduce((prev,cur) => cur.y > prev.y? cur : prev);
@@ -534,8 +560,9 @@
             
                   chart.config.options.scales['leftyaxis'].max = max.y + lim
                   chart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
-                  
+                 
                 })
+             
                 chart.update('none')
                 smallChart.update('none')
                 zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
@@ -545,6 +572,7 @@
           },
           onDragEnd: function (e, datasetIndex, index, value) {
             dataChanged.value = true;
+            updateData()
           },
         },
 
