@@ -153,11 +153,11 @@
     chart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
     chart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
 
-    chart.config.options.plugins.zoom.limits.x.min = data[0].x;
-    chart.config.options.plugins.zoom.limits.x.max = data[data.length - 1].x
+    //chart.config.options.plugins.zoom.limits.x.min = data[0].x;
+   // chart.config.options.plugins.zoom.limits.x.max = data[data.length - 1].x
 
-    chart.config.options.scales.x.min = data[0].x;
-    chart.config.options.scales.x.max = data[data.length - 1].x;
+   // chart.config.options.scales.x.min = data[0].x;
+   // chart.config.options.scales.x.max = data[data.length - 1].x;
 
   
 
@@ -433,7 +433,7 @@
          right: 0
         }
       }, 
-      animation: false,
+      animation: true,
      interaction: {
        mode: 'index',
        intersect: true,
@@ -482,7 +482,7 @@
             zoomBox(smallChart.data.datasets[0].data[min].x, smallChart.data.datasets[0].data[max].x)
             chart.stop();
             smallChart.stop();
-            chart.update('none');
+            chart.update();
             smallChart.update('none');
 
           },
@@ -517,14 +517,16 @@
               let chart = lineRef.value.chartInstance;
               let smallChart = smallLineRef.value.chartInstance;
               let point = +value.x
+              console.log(highlighArrIndex)
               let left = +chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x;
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
               if((left <= point &&  point <= right) || (left >= point &&  point >= right)){
                 hightlightHashrate.value = value.y
                 chart.config.options.scales['leftyaxis'].max = value.y + value.y*0.1;
                   highlighArrIndex.forEach(index1=>{
+                  let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index1].x) 
                   chart.data.datasets[datasetIndex].data[index1].y = value.y
-                  smallChart.data.datasets[datasetIndex].data[index1].y = value.y;
+                  smallChart.data.datasets[datasetIndex].data[indexNear].y = value.y;
                   let lim = 1;
                   let arr = chart.config.data.datasets[datasetIndex].data
                   let max = arr.reduce((prev,cur) => cur.y > prev.y? cur : prev);
@@ -534,7 +536,7 @@
                   chart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
                   
                 })
-                chart.update()
+                chart.update('none')
                 smallChart.update('none')
                 zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
                 console.log('react')

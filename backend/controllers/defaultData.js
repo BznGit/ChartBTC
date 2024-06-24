@@ -37,7 +37,7 @@ const defaultData = class {
             const min = this.arrDays[0].x
             const max = this.arrDays[this.arrDays.length-1].x
 
-            const step = Math.max(1, Math.round((max - min) / 1000000000));
+            const step = Math.max(1, Math.round((max - min) / 10000000000));
             console.log('first step', step)
             const data = [];
             let i = 0;
@@ -58,12 +58,8 @@ const defaultData = class {
         console.log(min, max)
         const start = this.arrDays.findIndex((item) => item.x === min);
         const end = this.arrDays.findIndex((item) => item.x === max)
-        console.log('from to->', end - start)
-        console.log('max - min ', new Date(max - min).getDay());
 
-        console.log('step', Math.max(1, Math.round((end - start) / 5)));
-        const step = Math.max(1, Math.round((max - min) / 1000000000));
-        console.log('step', Math.max(1, Math.round((end - start) / 1000000000)));
+        const step = Math.max(1, Math.round((max - min) / 10000000000));
         const data = [];
         let i = 0;
         while (i < this.arrDays.length && this.arrDays[i].x < min) {
