@@ -2,12 +2,12 @@
 <template>
   <div class="menu">
     <div class="menu-inputs">
-      <input type="number"  @input="setHightlightHashrate" v-model="hightlightHashrate">
       <select v-model="selected">
-        <option value='set'>=</option>
+        <option value='equals'>=</option>
         <option value='increment'>+</option>
         <option value='decrement'>-</option>
       </select>
+      <input type="number"  @input="setHightlightHashrate" v-model="hightlightHashrate">
     </div>
     <div class="zoom-items">
       <input type="radio" id="day" v-model="division" value="day" />
@@ -33,12 +33,13 @@
 
   const lineRef = ref()
   const hightlightHashrate = ref() 
-  const selected = ref('set')
+  const selected = ref('equals')
   const division = ref('day')
   const loading = ref(false)
   const dataChanged = ref(false)
   const step = ref()
   let changedPointsArr = ref([])
+
   watch(division, (newDevision, oldDivision) => {
     console.log('watch!', newDevision, oldDivision)
     let chart = lineRef.value.chartInstance;
@@ -130,7 +131,7 @@
   }
 
   function updateData(){
-    console.log(changedPointsArr.value, step.value)
+    console.log(changedPointsArr.value, step.value, selected.value)
     try {
       loading.value = true
       fetch(`/update`, {
@@ -138,7 +139,7 @@
           headers: {
             'Content-Type': 'application/json;charset=utf-8'
           },
-          body: JSON.stringify({changedPointsArr: changedPointsArr.value, step: step.value})
+          body: JSON.stringify({changedPointsArr: changedPointsArr.value, step: step.value, selected: selected.value})
       }).then( res=>res.ok? console.log('updated'):console.log('not updated'))
       
     } catch (error){
@@ -198,8 +199,12 @@
       smallChart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
 
     }
+    min = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
+    max = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
+    smallChart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
+    smallChart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
     chart.stop();
-    smallChart.update('none')
+    smallChart.update()
     chart.update()
     
     zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max) 
@@ -228,13 +233,39 @@
     let chart = lineRef.value.chartInstance
     let smallChart = smallLineRef.value.chartInstance
     highlighArrIndex.forEach(index=>{
-      chart.data.datasets[0].data[index].y = event.target.value
-      smallChart.data.datasets[0].data [index].y = event.target.value
-
+      if(selected.value === 'equals'){
+        chart.data.datasets[0].data[index].y =  parseFloat(event.target.value)
+        smallChart.data.datasets[0].data [index].y = parseFloat(event.target.value)
+      }
+      if(selected.value === 'increment'){
+        chart.data.datasets[0].data[index].y = chart.data.datasets[0].data[index].y + parseFloat(event.target.value)
+        smallChart.data.datasets[0].data [index].y = smallChart.data.datasets[0].data [index].y + parseFloat(event.target.value)
+      }
+      if(selected.value === 'decrement'){
+        chart.data.datasets[0].data[index].y = chart.data.datasets[0].data[index].y - parseFloat(event.target.value)
+        smallChart.data.datasets[0].data [index].y = smallChart.data.datasets[0].data [index].y - parseFloat(event.target.value)
+      }
+      let indexNear  = findClosestNumber(smallChart.data.datasets[0].data, chart.data.datasets[0].data[index].x) 
+      changedPointsArr.value.push(smallChart.data.datasets[0].data[indexNear])
     })
+    highlighArrIndex =[]
+    let min = chart.data.datasets[0].data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
+    let max = chart.data.datasets[0].data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
+    chart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
+    chart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
+
+    console.log(max.y, chart.config.options.scales['leftyaxis'].max)
+
+    min = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
+    max = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
+    smallChart.config.options.scales['leftyaxis'].min = min.y - min.y*0.01;
+    smallChart.config.options.scales['leftyaxis'].max = max.y + max.y*0.01;
+     
     chart.update()  
     smallChart.update('none')
-    zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max ) 
+    zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max)
+
+    updateData()   
   }
 
   let highlighArrIndex = [];
@@ -546,23 +577,34 @@
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
               if((left <= point &&  point <= right) || (left >= point &&  point >= right)){
                 hightlightHashrate.value = value.y
-                chart.config.options.scales['leftyaxis'].max = value.y + value.y*0.1;
+               // chart.config.options.scales['leftyaxis'].max = value.y + value.y*0.1;
+             
                 changedPointsArr.value =[]
                 highlighArrIndex.forEach(index1=>{
                   let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index1].x) 
-                  chart.data.datasets[datasetIndex].data[index1].y = value.y
-                  smallChart.data.datasets[datasetIndex].data[indexNear].y = value.y;
+                  if(selected.value === 'equals'){
+                    chart.data.datasets[datasetIndex].data[index1].y = value.y
+                    smallChart.data.datasets[datasetIndex].data[indexNear].y = value.y;
+                  }
+                  if(selected.value === 'increment'){
+                    chart.data.datasets[datasetIndex].data[index1].y = chart.data.datasets[datasetIndex].data[index1].y + 1
+                    smallChart.data.datasets[datasetIndex].data[indexNear].y =smallChart.data.datasets[datasetIndex].data[indexNear].y + 1
+                  }
+                  if(selected.value === 'decrement'){
+                    chart.data.datasets[datasetIndex].data[index1].y = chart.data.datasets[datasetIndex].data[index1].y - 1
+                    smallChart.data.datasets[datasetIndex].data[indexNear].y =smallChart.data.datasets[datasetIndex].data[indexNear].y - 1;
+                  }
                   changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
-                  let lim = 1;
-                  let arr = chart.config.data.datasets[datasetIndex].data
-                  let max = arr.reduce((prev,cur) => cur.y > prev.y? cur : prev);
-                  let min = arr.reduce((prev,cur) => cur.y < prev.y? cur : prev);
-            
-                  chart.config.options.scales['leftyaxis'].max = max.y + lim
-                  chart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
-                 
                 })
-             
+                let lim = 1;
+                let arr = chart.config.data.datasets[datasetIndex].data
+                let max = arr.reduce((prev,cur) => cur.y > prev.y? cur : prev);
+                let min = arr.reduce((prev,cur) => cur.y < prev.y? cur : prev);
+          
+                chart.config.options.scales['leftyaxis'].max = max.y + lim
+                chart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
+                smallChart.config.options.scales['leftyaxis'].max = max.y + lim
+                smallChart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
                 chart.update('none')
                 smallChart.update('none')
                 zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
@@ -573,6 +615,7 @@
           onDragEnd: function (e, datasetIndex, index, value) {
             dataChanged.value = true;
             updateData()
+            changedPointsArr.value =[]
           },
         },
 

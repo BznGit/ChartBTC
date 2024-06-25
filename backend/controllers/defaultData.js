@@ -1,3 +1,5 @@
+const { options } = require("../routes/routes");
+
 const defaultData = class {
     setData(timezone) {
         let currTimeZone = new Date().getTimezoneOffset();
@@ -10,7 +12,7 @@ const defaultData = class {
 
         // get days array ----------------------------------------------------------------/
         step.setDate(step.getDate() + 1);
-        this.lengthDays = 100;
+        this.lengthDays = 1000;
         this.arrDays = [];
         let cur = +curr;
         let nw = +step;
@@ -20,7 +22,7 @@ const defaultData = class {
             y += 5 - Math.random() * 10;
             let obj = {
                 x: new Date((+start + delta*i)).setHours(hourDelta, 0, 0, 0),
-                y: y
+                y:  y
             }
             this.arrDays.push(obj)
         }
@@ -36,18 +38,32 @@ const defaultData = class {
  
             const min = this.arrDays[0].x
             const max = this.arrDays[this.arrDays.length-1].x
-
+            const start = 0;
+            const end = this.arrDays.length-1
             const step = Math.max(1, Math.round((max - min) / 10000000000));
             console.log('first step', step)
             const data = [];
             let i = 0;
-            while (i < this.arrDays.length && this.arrDays[i].x < min) {
+          /*  while (i < this.arrDays.length && this.arrDays[i].x < min) {
                 i++;
               }
             while (i < this.arrDays.length && this.arrDays[i].x <= max) {
             data.push(this.arrDays[i]);
             i += step;
-            }
+            }*/
+            let k = 0;
+            let sum = 0;
+             for(let i = start; i <= end; i++){
+                 sum += this.arrDays[i].y;
+                 if(k === step){
+                     let avarege = sum / k
+     
+                     data.push({x: this.arrDays[i - k].x, y:avarege })
+                     k = 0; 
+                     sum =0  
+                 } else k++
+                 
+             }
             return {small: data, big: this.arrDays, step: step}
         };
         if (division === 'week') return this.arrWeeks;
@@ -63,30 +79,40 @@ const defaultData = class {
         const data = [];
         let i = 0;
         console.log('step=',step)
-        while (i < this.arrDays.length && this.arrDays[i].x < min) {
+       /* while (i < this.arrDays.length && this.arrDays[i].x < min) {
             i++;
           }
         while (i < this.arrDays.length && this.arrDays[i].x <= max) {
         data.push(this.arrDays[i]);
         i += step;
-        }
-       /* for(let i = start; i <= end; i += step){
-            data.push(this.arrDays[i])
         }*/
-        console.log(data)
+       let k = 0;
+       let sum = 0;
+        for(let i = start; i <= end; i++){
+            sum += this.arrDays[i].y;
+            if(k === step){
+                let avarege = sum / k
+
+                data.push({x: this.arrDays[i - k].x, y:avarege })
+                k = 0; 
+                sum =0  
+            } else k++
+            
+        }
+       // console.log(data)
         return {small: data, big: this.arrDays, step: step}
     }
-    updateData(arr, step){
-        console.log(arr, step)
+   /* updateData(arr, step, selected){
+        console.log(arr, step, selected)
 
         let index1 = this.arrDays.findIndex(item => item.x === arr[0].x)
-        let index2 = this.arrDays.findIndex(item => item.x === arr[arr.length -1].x)
+        let index2 = this.arrDays.findIndex(item => item.x === arr[arr.length - 1].x)
         console.log(index1, index2)
         let startIndex = null;
         let endIndex = null
         if(step == 1) {
-            startIndex = index1 - 1;
-            endIndex = index2 + 1
+            startIndex = index1;
+            endIndex = index2
         } else {
             startIndex = index1 - Math.trunc(step / 2);
             endIndex = index2 + Math.trunc(step / 2)
@@ -95,8 +121,38 @@ const defaultData = class {
         if(startIndex < 0) startIndex = 0; 
         if(startIndex > this.arrDays.length - 1) startIndex = this.arrDays.length - 1; 
         for(let i = startIndex; i <= endIndex; i++){
-            this.arrDays[i].y = arr[0].y 
+           this.arrDays[i].y = arr[0].y;
         }
+        console.log(this.arrDays)
+       
+    }*/
+    updateData(arr, step, selected){
+        console.log( 'step=', step )
+
+        let startIndex = null;
+        let endIndex = null
+      //  if(step == 1) {
+           arr.forEach(elem => {   
+                let index = this.arrDays.findIndex(item => item.x === elem.x) 
+               this.arrDays[index].y = elem.y  
+               console.log('step -<1',arr )         
+            });
+      //  } else {
+            arr.forEach(elem => {   
+                let index = this.arrDays.findIndex(item => item.x === elem.x) 
+                let delta = elem.y - this.arrDays[index].y
+                this.arrDays[index].y = elem.y   
+                startIndex = index - Math.trunc(step / 2);
+                endIndex = index + Math.trunc(step / 2) ;
+                if(startIndex < 0) startIndex = 0; 
+                if(endIndex > this.arrDays.length - 1) endIndex = this.arrDays.length - 1; 
+                for(let i = startIndex; i <= endIndex; i++){
+                    if( i!= index) this.arrDays[i].y =this.arrDays[i].y + delta;
+                    
+                  }       
+            });
+
+      //  }
         console.log(this.arrDays)
        
     }

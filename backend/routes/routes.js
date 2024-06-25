@@ -18,7 +18,7 @@ route.get('/getchunk', function(req, res, next){
     res.end(); 
 });
 route.post('/update', function(req, res, next){
-    data.updateData(req.body.changedPointsArr, req.body.step)
+    data.updateData(req.body.changedPointsArr, req.body.step, req.body.selected)
     res.end(); 
 });
 
