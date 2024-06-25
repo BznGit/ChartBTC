@@ -127,34 +127,18 @@ const defaultData = class {
        
     }*/
     updateData(arr, step, selected){
-        console.log( 'step=', step )
-
-        let startIndex = null;
-        let endIndex = null
-      //  if(step == 1) {
-           arr.forEach(elem => {   
-                let index = this.arrDays.findIndex(item => item.x === elem.x) 
-               this.arrDays[index].y = elem.y  
-               console.log('step -<1',arr )         
-            });
-      //  } else {
-            arr.forEach(elem => {   
-                let index = this.arrDays.findIndex(item => item.x === elem.x) 
-                let delta = elem.y - this.arrDays[index].y
-                this.arrDays[index].y = elem.y   
-                startIndex = index - Math.trunc(step / 2);
-                endIndex = index + Math.trunc(step / 2) ;
-                if(startIndex < 0) startIndex = 0; 
-                if(endIndex > this.arrDays.length - 1) endIndex = this.arrDays.length - 1; 
-                for(let i = startIndex; i <= endIndex; i++){
-                    if( i!= index) this.arrDays[i].y =this.arrDays[i].y + delta;
-                    
-                  }       
-            });
-
-      //  }
+        console.log(arr)
+         let end = this.arrDays.findIndex(item => item.x === arr[arr.length-1].x) 
+       arr.forEach(elem => {   
+            let index = this.arrDays.findIndex(item => item.x === elem.x) 
+           
+            console.log(index)         
+            for(let i = index; i <= end; i++){
+                 this.arrDays[i].y = elem.y
+                
+            }       
+        });
         console.log(this.arrDays)
-       
     }
 
 
