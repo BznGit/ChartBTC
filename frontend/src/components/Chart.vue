@@ -7,7 +7,8 @@
         <option value='increment'>+</option>
         <option value='decrement'>-</option>
       </select>
-      <input type="number"  @input="setHightlightHashrate" v-model="hightlightHashrate">
+      <input type="number"  v-model="hightlightHashrate">
+      <button @click="setHightlightHashrate">ok</button>
     </div>
     <div class="zoom-items">
       <input type="radio" id="day" v-model="division" value="day" />
@@ -42,8 +43,27 @@
 
   watch(division, (newDevision, oldDivision) => {
     console.log('watch!', newDevision, oldDivision)
-    let chart = lineRef.value.chartInstance;
-    let data = chart.data.datasets[0].data;
+    let smallChart = smallLineRef.value.chartInstance;
+    let start  =  smallChart.data.datasets[0].data[0].x;
+    console.log(start)
+    let curr = new Date()
+    let period = 1;
+    console.log(newDevision)
+    switch(newDevision){
+      case 'day': period = 1;
+        break;
+      case 'week': period = 7;
+        break; 
+      case 'month': period = 30;
+        break; 
+    }
+    console.log(period)
+    curr.setDate(curr.getDate() + 7);
+
+    let index = findClosestNumber(smallChart.data.datasets[0].data, +curr);
+    let end = smallChart.data.datasets[0].data[index].x
+    console.log( new Date(start), new Date(end) )
+    startFetch(start, end)
    // if (dataChanged.value) getNewData(data, newDevision, oldDivision); else getDataDivision(newDevision, false)
 
   })
@@ -153,8 +173,9 @@
 
   // Update chart ------------------------------------------------------ 
   function updateChart(allData, def){
-    let data = allData.small;
-    let data1 = allData.big;
+    console.log(allData)
+    let data = allData.chart;
+    let data1 = allData.smallChart;
     step.value = allData.step
     dataset1.value.data = data
     console.log(allData)
@@ -181,24 +202,23 @@
 
    // chart.config.options.scales.x.min = data[0].x;
    // chart.config.options.scales.x.max = data[data.length - 1].x;
-
-  
+ 
 
     smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
     smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
+
+    console.log('default>>', def)
+    smallChart.data.datasets[0].data =  data1
+    smallChart.config.options.scales.x.min = data1[0].x;
+    smallChart.config.options.scales.x.max = data1[data1.length - 1].x;
+
+    min = data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
+    max = data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
     
-    if(def) {
-      console.log('default>>', def)
-      smallChart.data.datasets[0].data =  data
-      smallChart.config.options.scales.x.min = data[0].x;
-      smallChart.config.options.scales.x.max = data[data.length - 1].x;
+    smallChart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
+    smallChart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
 
-      let min = data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
-      let max = data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
-      smallChart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
-      smallChart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
-
-    }
+    
     min = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
     max = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
     smallChart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
@@ -234,21 +254,21 @@
     let smallChart = smallLineRef.value.chartInstance
     highlighArrIndex.forEach(index=>{
       if(selected.value === 'equals'){
-        chart.data.datasets[0].data[index].y =  parseFloat(event.target.value)
-        smallChart.data.datasets[0].data [index].y = parseFloat(event.target.value)
+        chart.data.datasets[0].data[index].y =  parseFloat(hightlightHashrate.value)
+        smallChart.data.datasets[0].data [index].y = parseFloat(hightlightHashrate.value)
       }
       if(selected.value === 'increment'){
-        chart.data.datasets[0].data[index].y = chart.data.datasets[0].data[index].y + parseFloat(event.target.value)
-        smallChart.data.datasets[0].data [index].y = smallChart.data.datasets[0].data [index].y + parseFloat(event.target.value)
+        chart.data.datasets[0].data[index].y = chart.data.datasets[0].data[index].y + parseFloat(hightlightHashrate.value)
+        smallChart.data.datasets[0].data [index].y = smallChart.data.datasets[0].data [index].y + parseFloat(hightlightHashrate.value)
       }
       if(selected.value === 'decrement'){
-        chart.data.datasets[0].data[index].y = chart.data.datasets[0].data[index].y - parseFloat(event.target.value)
-        smallChart.data.datasets[0].data [index].y = smallChart.data.datasets[0].data [index].y - parseFloat(event.target.value)
+        chart.data.datasets[0].data[index].y = chart.data.datasets[0].data[index].y - parseFloat(hightlightHashrate.value)
+        smallChart.data.datasets[0].data [index].y = smallChart.data.datasets[0].data [index].y - parseFloat(hightlightHashrate.value)
       }
       let indexNear  = findClosestNumber(smallChart.data.datasets[0].data, chart.data.datasets[0].data[index].x) 
       changedPointsArr.value.push(smallChart.data.datasets[0].data[indexNear])
     })
-    highlighArrIndex =[]
+  
     let min = chart.data.datasets[0].data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
     let max = chart.data.datasets[0].data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
     chart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
@@ -260,7 +280,15 @@
     max = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
     smallChart.config.options.scales['leftyaxis'].min = min.y - min.y*0.01;
     smallChart.config.options.scales['leftyaxis'].max = max.y + max.y*0.01;
-     
+    if(highlighArrIndex.length!=0){
+           
+           highlighArrIndex.forEach(index=>{
+             chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
+             chart.data.datasets[0].backgroundColor[index] = '#0068dd'
+             highlighArrIndex = []
+           })
+           chart.update()
+         } 
     chart.update()  
     smallChart.update('none')
     zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max)
@@ -314,6 +342,7 @@
       const {ctx, canvas,  scales: {x, leftyaxis}}  = chart; 
       
       canvas.onclick = (e) =>{ 
+        console.log('drop!!!!')
           if(highlighArrIndex.length!=0){
            
             highlighArrIndex.forEach(index=>{
@@ -486,7 +515,7 @@
          right: 0
         }
       }, 
-      animation: true,
+      animation: false,
      interaction: {
        mode: 'index',
        intersect: true,
@@ -597,14 +626,20 @@
                   changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
                 })
                 let lim = 1;
+                // Set scales max/min Chart -----------------------------
                 let arr = chart.config.data.datasets[datasetIndex].data
                 let max = arr.reduce((prev,cur) => cur.y > prev.y? cur : prev);
                 let min = arr.reduce((prev,cur) => cur.y < prev.y? cur : prev);
           
                 chart.config.options.scales['leftyaxis'].max = max.y + lim
                 chart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
+                // Set scales max/min smallChart -------------------------
+                arr = chart.config.data.datasets[datasetIndex].data
+                max = arr.reduce((prev,cur) => cur.y > prev.y? cur : prev);
+                min = arr.reduce((prev,cur) => cur.y < prev.y? cur : prev);
                 smallChart.config.options.scales['leftyaxis'].max = max.y + lim
                 smallChart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
+
                 chart.update('none')
                 smallChart.update('none')
                 zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
@@ -775,8 +810,8 @@ function  zoomBox(min, max){
     chart.stop();
     smallChart.stop();
     chart.update('none');
-    smallChart.update('none')
-    startFetch(mainMin, mainMax)*/
+    smallChart.update('none')*/
+    //startFetch(mainMin, mainMax)
 
     canvas.onmousemove = null;
   })
