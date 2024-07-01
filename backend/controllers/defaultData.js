@@ -24,7 +24,7 @@ const defaultData = class {
                 x: new Date((+start + delta*i)).setHours(hourDelta, 0, 0, 0),
                 y:  y
             }
-            this.arrDays.push(obj)
+            this.arrDays.push(obj) // -> to base
         }
         console.log('first')
     }
@@ -42,7 +42,7 @@ const defaultData = class {
         const step = Math.max(1, Math.round((max - min) / 10000000000));
         const data = [];
         let i = 0;
-
+        // -> from base
         while (i < this.arrDays.length && this.arrDays[i].x < min) {
             i++;
           }
@@ -56,6 +56,7 @@ const defaultData = class {
 
     updateData(arr, step, selected){
         console.log(arr)
+          // -> from base
          let end = this.arrDays.findIndex(item => item.x === arr[arr.length-1].x) 
         arr.forEach(elem => {   
             let index = this.arrDays.findIndex(item => item.x === elem.x) 
@@ -64,11 +65,13 @@ const defaultData = class {
             for(let i = index; i <= end; i++){
                  this.arrDays[i].y = elem.y
                 
-            }       
+            }   
+            // -> to base    
         });
         console.log(this.arrDays)
     }
     getSmallChatData(){
+        // -> from base
         let min = this.arrDays[0].x
         let max = this.arrDays[this.arrDays.length - 1].x
         const step = Math.max(1, Math.round((max - min) / 10000000000));

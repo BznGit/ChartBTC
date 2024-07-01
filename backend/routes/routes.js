@@ -8,6 +8,7 @@ const data = new DataClass();
 
 route.get('/chart', function(req, res, next){
     const chart = data.getDefaultData( req.query.division, parseInt(req.query.width), parseInt(req.query.timezone), parseInt(req.query.def))
+    
     res.send(chart);
     res.end(); 
 });
@@ -22,6 +23,8 @@ route.post('/update', function(req, res, next){
     res.end(); 
 });
 
+
+///////////////////////////////////////////////////////
 route.get('/snapshot/:hash', function(req, res, next){
     //console.log('/snapshot: ', req.params.hash)
     db.getSnapshot(req.params.hash).then((snapshot)=>{         

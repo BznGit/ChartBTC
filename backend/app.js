@@ -2,6 +2,7 @@ module.exports = function(){
     const settings = require('./nodesSettings')
     const express = require('express');
     const app = express();
+    const session = require('express-session');
     const server = require('http').Server(app);
     const bodyParser = require('body-parser');
     const multer  = require('multer')
@@ -20,6 +21,12 @@ module.exports = function(){
     });
     //app.use(multer({storage:storageConfig}).array('file'));
     app.use('/', routes);
+    app.use(
+        session({
+            secret: 'secret', 
+            saveUninitialized: true
+        })
+    )
     server.listen(settings.port, ()=>console.log("ChartBTC server started on port: ", settings.port));
     app.use(express.static('./dist')); 
 }()

@@ -16,7 +16,9 @@
       <input type="radio" id="week" v-model="division" value="week" />  
       <label for="week">Неделя</label> 
       <input type="radio" id="month" v-model="division" value="month" />
-      <label for="month">Месяц</label>    
+      <label for="month">Месяц</label> 
+      <input type="radio" id="all" v-model="division" value="year" />
+      <label for="all">Все</label>   
     </div>  
   </div>
   <LineChart ref="lineRef" :chartData="chartData" :options="chartOptions"  />
@@ -35,61 +37,46 @@
   const lineRef = ref()
   const hightlightHashrate = ref() 
   const selected = ref('equals')
-  const division = ref('day')
+  const division = ref('year')
   const loading = ref(false)
   const dataChanged = ref(false)
   const step = ref()
   let changedPointsArr = ref([])
 
+  // Resolving anchors "day", "week", "month", "all" ------------------------------------------/
   watch(division, (newDevision, oldDivision) => {
-    console.log('watch!', newDevision, oldDivision)
+    let chart = lineRef.value.chartInstance;
     let smallChart = smallLineRef.value.chartInstance;
-    let start  =  smallChart.data.datasets[0].data[0].x;
-    console.log(start)
-    let curr = new Date()
-    let period = 1;
-    console.log(newDevision)
+    let period = null;
+
     switch(newDevision){
-      case 'day': period = 1;
+      case 'day': period = 7;
         break;
-      case 'week': period = 7;
+      case 'week': period = 30;
         break; 
-      case 'month': period = 30;
+      case 'month': period = 90;
+        break; 
+      case 'year': period = 365; // -> 'all'
         break; 
     }
-    console.log(period)
-    curr.setDate(curr.getDate() + 7);
-
-    let index = findClosestNumber(smallChart.data.datasets[0].data, +curr);
-    let end = smallChart.data.datasets[0].data[index].x
-    console.log( new Date(start), new Date(end) )
+    let end = null
+    let start  =  null; 
+    if(period === 365){
+      start = smallChart.data.datasets[0].data[0].x;
+      end =  smallChart.data.datasets[0].data[smallChart.data.datasets[0].data.length - 1].x;
+    } else{
+      
+      let index = findClosestNumber(smallChart.data.datasets[0].data, chart.data.datasets[0].data[0].x);
+      start = smallChart.data.datasets[0].data[index].x;
+      let curr = new Date(start);
+      curr.setDate(curr.getDate() + period);
+      index = findClosestNumber(smallChart.data.datasets[0].data, +curr);
+      end = smallChart.data.datasets[0].data[index].x
+    }
     startFetch(start, end)
-   // if (dataChanged.value) getNewData(data, newDevision, oldDivision); else getDataDivision(newDevision, false)
-
   })
+
   
-  Tooltip.positioners.myCustomPositioner = function(elements, eventPosition) {
-    // A reference to the tooltip model
-    const tooltip = this;
-    if (elements.length == 0) return {
-      x: 0,
-      y: 0
-    }
-    let centrX = tooltip.chart.chartArea.left + tooltip.chart.chartArea.width / 2;
-    let add = 0; 
-    if( elements[0].element.x > centrX) add = -20; 
-    if( elements[0].element.x < centrX) add = 20; 
-    if( elements[0].element.x > centrX-5 && elements[0].element.x <= centrX+5){
-      add = -(tooltip.width + 30); 
-      tooltip.xAlign = 'right'
-    } 
-    return {
-      x: elements[0].element.x + add,
-      y: elements[0].element.y,
-     
-      // You may also include xAlign and yAlign to override those tooltip options.
-    };
-  };
   const props = defineProps({
      idChart: Number,
      from: String, 
@@ -133,7 +120,6 @@
 
   let k = 0
   function startFetch(min, max){
-    console.log(k++)
     try {
       loading.value = true
       fetch(`/getchunk?min=${min}&max=${max}`, {
@@ -151,7 +137,6 @@
   }
 
   function updateData(){
-    console.log(changedPointsArr.value, step.value, selected.value)
     try {
       loading.value = true
       fetch(`/update`, {
@@ -178,7 +163,6 @@
     let data1 = allData.smallChart;
     step.value = allData.step
     dataset1.value.data = data
-    console.log(allData)
     let chart = lineRef.value.chartInstance;
     let smallChart = smallLineRef.value.chartInstance;
    
@@ -207,7 +191,6 @@
     smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
     smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
 
-    console.log('default>>', def)
     smallChart.data.datasets[0].data =  data1
     smallChart.config.options.scales.x.min = data1[0].x;
     smallChart.config.options.scales.x.max = data1[data1.length - 1].x;
@@ -232,19 +215,15 @@
 
   let mainMin = 0;
   let mainMax = 0;
+
   onMounted(() => {
     let smallChart = smallLineRef.value.chartInstance;
 
-   smallChart.canvas.onmouseup = ()=>{
-      console.log('mainMin, mainMax -->', mainMin, mainMax)
-   
+    smallChart.canvas.onmouseup = ()=>{
       smallChart.stop();
-
       smallChart.update('none')
       startFetch(mainMin, mainMax)
-
-   }
-
+    }
     getDataDivision(division.value, true)
   });
 
@@ -273,8 +252,6 @@
     let max = chart.data.datasets[0].data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
     chart.config.options.scales['leftyaxis'].min = min.y - min.y*0.1;
     chart.config.options.scales['leftyaxis'].max = max.y + max.y*0.1;
-
-    console.log(max.y, chart.config.options.scales['leftyaxis'].max)
 
     min = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
     max = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
@@ -342,7 +319,6 @@
       const {ctx, canvas,  scales: {x, leftyaxis}}  = chart; 
       
       canvas.onclick = (e) =>{ 
-        console.log('drop!!!!')
           if(highlighArrIndex.length!=0){
            
             highlighArrIndex.forEach(index=>{
@@ -485,10 +461,10 @@
       let add = 0
       if(!tooltip) return
       let centrX = tooltip.chart.chartArea.left + tooltip.chart.chartArea.width / 2;
-      if(tooltip.xAlign =='left') add = -20
-      if(tooltip.xAlign =='right') add =  20
+      if(tooltip.xAlign =='left') add = 0
+      if(tooltip.xAlign =='right') add =  0
       if( x > centrX-5 && tooltip.xAlign =='left'){
-      add = -(tooltip.width + 60 ); 
+      add = -(tooltip.width + 0 ); 
 
     } 
  
@@ -529,12 +505,10 @@
             
             if (point.length){
               e.native.target.style.cursor = 'grab';
-             // console.log(point[0].element.options.radius)
               point[0].element.options.radius = 4
             } 
             else {
               e.native.target.style.cursor = 'crosshair'
-             // point[0].element.options.radius = 1
             }
 
           },
@@ -559,7 +533,6 @@
             const min = findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0));
             const max = findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0));
   
-            console.log('onZoom', min, max)
             startFetch(smallChart.data.datasets[0].data[min].x, smallChart.data.datasets[0].data[max].x)
             zoomBox(smallChart.data.datasets[0].data[min].x, smallChart.data.datasets[0].data[max].x)
             chart.stop();
@@ -600,7 +573,6 @@
               let chart = lineRef.value.chartInstance;
               let smallChart = smallLineRef.value.chartInstance;
               let point = +value.x
-              console.log(highlighArrIndex)
               
               let left = +chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x;
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
@@ -643,7 +615,6 @@
                 chart.update('none')
                 smallChart.update('none')
                 zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
-                console.log('react')
               }
             }
           },
@@ -662,7 +633,7 @@
          },
        },
        tooltip: {
-        position: 'myCustomPositioner',
+        caretPadding: 20,
         enabled: true,
         intersect: false,
         usePointStyle: false,
@@ -806,13 +777,6 @@ function  zoomBox(min, max){
 
 
   window.addEventListener('mouseup', (e) =>{
-   /* console.log('mainMin, mainMax -->', mainMin, mainMax)
-    chart.stop();
-    smallChart.stop();
-    chart.update('none');
-    smallChart.update('none')*/
-    //startFetch(mainMin, mainMax)
-
     canvas.onmousemove = null;
   })
 
@@ -832,15 +796,11 @@ function  zoomBox(min, max){
       // left button move -----------------------------------------------------------------------/
       function dragMove(chart, dragDelta){
         const timeZone = new Date().getTimezoneOffset()
-        console.log(timeZone/60)
         const timestamp = x.getValueForPixel(dragDelta.offsetX);
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
         let scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, dayTimestamp)
         
-        console.log('scrollPoint first>>', scrollPoint)
-        console.log('data>>', new Date(smallChart.data.datasets[0].data[0].x).toLocaleDateString(),' | ', new Date(dayTimestamp).toLocaleDateString())
-        console.log('data>>', smallChart.data.datasets[0].data[0].x, dayTimestamp)
-        
+    
         if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
         if(dragDelta.offsetX > right && scrollPoint === -1){
           scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1;
@@ -848,11 +808,8 @@ function  zoomBox(min, max){
         if(scrollPoint > findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1) {
           scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1
         }
-        console.log( 'scrollPoint second ->', scrollPoint)
-        console.log( 'left move ->', smallChart.data.datasets[0].data[scrollPoint].x)
 
         let x1 =  smallChart.data.datasets[0].data[scrollPoint].x
-        console.log(x1)
 
         chart.config.options.scales.x.min = x1
         chart.stop();
@@ -877,8 +834,7 @@ function  zoomBox(min, max){
         const dayTimestamp = new Date(timestamp).setHours(0, 0, 0, 0)
        
         let scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, dayTimestamp)
-        console.log('rightscrollPoint> ', scrollPoint)
-
+  
         if(dragDelta.offsetX > right && scrollPoint === -1) {
           scrollPoint = smallChart.data.datasets[0].data.length - 1; 
           onsole.log('here1>')
@@ -889,11 +845,8 @@ function  zoomBox(min, max){
         } 
         if(scrollPoint!=-1 && scrollPoint < findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1 ) {
           scrollPoint = findClosestNumber(smallChart.data.datasets[0].data,  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1
-    
-          console.log('here3>')
         }
 
-        console.log( 'right move ->', smallChart.data.datasets[0].data[scrollPoint], scrollPoint)
         chart.config.options.scales.x.max = smallChart.data.datasets[0].data[scrollPoint].x
         chart.stop();
         smallChart.stop();
@@ -914,7 +867,6 @@ function  zoomBox(min, max){
       }
       let oldScrollPoint = 0
       function dragMoveCenter(chart, dragDelta, staticScaleMin, staticScaleMax){
-        console.log('center')  
 
         // difference
         const dragStartingPoint = x.getValueForPixel(drag.offsetX)
@@ -940,7 +892,7 @@ function  zoomBox(min, max){
        
         let minChart1;
         let maxChart1;
-        console.log(scrollPoint, range)
+   
         if (minVal < 0 ){
           minChart1 = smallChart.data.datasets[0].data[0].x;
           maxChart1 = smallChart.data.datasets[0].data[range].x ;
@@ -968,7 +920,6 @@ function  zoomBox(min, max){
         smallChart.stop();
         chart.update('none');
         smallChart.update('none')
-        console.log('->')
        // startFetch(minChart1, maxChart1)
         mainMin = minChart1
         mainMax= maxChart1
@@ -991,7 +942,6 @@ function findClosestNumber(arr, target) {
     }
   }
   const index = arr.indexOf(closest)
- // console.log('func:', closest, arr.indexOf(closest))
   return index
 }
 
@@ -1034,7 +984,7 @@ let smallChartOptions = computed(()=>{
          // max: +data[data.length-1].x,
          type: 'time',       
          time: {
-           unit: division.value,
+           unit: 'year',
            displayFormats: {
              minute:'HH:mm',
              hour: 'HH:mm',
