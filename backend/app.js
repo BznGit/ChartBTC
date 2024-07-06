@@ -23,7 +23,7 @@ module.exports = function(){
     //app.use(multer({storage:storageConfig}).array('file'));
     app.use('/', routes);
     
-    server.listen(settings.port, ()=>console.log("ChartBTC server started on port: ", settings.port));
+    server.listen(settings.port, ()=>console.log("ChartBTC2 server started on port: ", settings.port));
     app.use(express.static('./dist')); 
 }()
 

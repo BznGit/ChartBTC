@@ -1,6 +1,6 @@
 {
   "eaBlockchainlAdress":"136.243.156.190",
-  "port": "9000",
+  "port": "9001",
   "intervalApiSec": "5",
   "dataBaseUrl" : "mongodb://127.0.0.1:27017",
   "nodes": [

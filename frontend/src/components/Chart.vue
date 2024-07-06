@@ -3,14 +3,17 @@
   <div class="menu">
     <div class="menu-inputs">
       <select v-model="selected">
+     
         <option value='equals'>=</option>
         <option value='increment'>+</option>
         <option value='decrement'>-</option>
       </select>
       <input type="number"  v-model="hightlightHashrate">
       <button @click="setHightlightHashrate">ok</button>
+      client
     </div>
     <div class="zoom-items">
+     
       <input type="radio" id="day" v-model="division" value="day" />
       <label for="day" class="checked">День</label>
       <input type="radio" id="week" v-model="division" value="week" />  
