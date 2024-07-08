@@ -39,17 +39,36 @@ const defaultData = class {
             data.push(arrDays[i]);
             i += step;
         }
-
-        return {smallChart: this.getSmallChatData(arrDays), chart: data}
+        const { chart  } = this.getSmallChatData(arrDays)
+        return {smallChart: chart, chart: data, step: step}
     }
 
-    updateData(arr, arrDays){
-         console.log('length>', arr)
-        let end = arrDays.findIndex(item => item.x === arr[arr.length-1].x) 
+    updateData(arr, arrDays, step, selected){
+        console.log('selected>', selected)
+        let mode = 0
+        switch(selected){
+            case 'equals': mode = 0
+                break
+            case 'increment': mode = 1
+                break
+            case 'decrement': mode = 1
+                break
+        }
+        let delta = 0
+        if(step != 1) delta = Math.trunc(step / 2)
+        console.log('delta>', delta)
+        
+        let end = arrDays.findIndex(item => item.x === arr[arr.length-1].x) + delta
+        if(end > arrDays.length -1) end = arrDays.length - 1
         arr.forEach(elem => {   
-            let index = arrDays.findIndex(item => item.x === elem.x)     
+            let index = arrDays.findIndex(item => item.x === elem.x) - delta
+            if(index < 0) index = 0 
+            let dl = elem.y -  arrDays[index].y    
             for(let i = index; i <= end; i++){
-                 arrDays[i].y = elem.y
+                if(mode != 0) 
+                    arrDays[i].y = arrDays[i].y + dl;
+                else
+                     arrDays[i].y = elem.y
             }   
         });
         return arrDays
@@ -74,7 +93,7 @@ const defaultData = class {
             i += step;
         }
       //  console.log('getSmallChatData>>',data.length)
-        return data
+        return {chart: data, step: step}
     }
 
 }

@@ -117,7 +117,10 @@
   }
 
   function updateData(){
-    store.updateData( changedPointsArr.value)
+    console.log(changedPointsArr.value)
+    store.updateData( changedPointsArr.value, selected.value)
+    changedPointsArr.value = []
+    
   }
 
 
@@ -235,7 +238,7 @@
     chart.update()  
     smallChart.update('none')
     zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max)
-
+    dataChanged.value = true;
     updateData()   
   }
 
@@ -286,12 +289,14 @@
       const {ctx, canvas,  scales: {x, leftyaxis}}  = chart; 
       
       canvas.onclick = (e) =>{ 
-          if(highlighArrIndex.length!=0){
+          if(highlighArrIndex.length!=0 && dataChanged.value == true){
             highlighArrIndex.forEach(index=>{
               chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
               chart.data.datasets[0].backgroundColor[index] = '#0068dd'
-              highlighArrIndex = []
+              
             })
+            dataChanged.value == false
+            highlighArrIndex = []
             chart.update()
           }
       };
@@ -530,9 +535,13 @@
             hightlightHashrate.value = value.y
             if (highlighArrIndex.length ==0) highlighArrIndex.push(index)
             let chart = lineRef.value.chartInstance;
+            let smallChart = smallLineRef.value.chartInstance;
             chart.data.datasets[datasetIndex].pointBorderColor[index] = 'red'
             chart.data.datasets[datasetIndex].backgroundColor[index] = 'red'
+            let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index].x)
+            changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
             chart.update()
+           
           },
           onDrag: function (e, datasetIndex, index, value) {
             
@@ -584,7 +593,7 @@
                 min = arr.reduce((prev,cur) => cur.y < prev.y? cur : prev);
                 smallChart.config.options.scales['leftyaxis'].max = max.y + lim
                 smallChart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
-
+                dataChanged.value = true;
                 chart.update('none')
                 smallChart.update('none')
                 zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
@@ -593,9 +602,9 @@
           },
           onDragEnd: function (e, datasetIndex, index, value) {
             console.log('drag end!')
-            dataChanged.value = true;
+            
             updateData()
-            changedPointsArr.value =[]
+           // changedPointsArr.value =[]
        
           },
         },
