@@ -551,7 +551,7 @@
               let chart = lineRef.value.chartInstance;
               let smallChart = smallLineRef.value.chartInstance;
               let point = +value.x
-              
+              console.log(highlighArrIndex[0])
               let left = +chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x;
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
               if((left <= point &&  point <= right) || (left >= point &&  point >= right)){
@@ -596,7 +596,11 @@
                 dataChanged.value = true;
                 chart.update('none')
                 smallChart.update('none')
-                zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
+                console.log('drag zoom',chart.config.options.scales.x.min  )
+                zoomBox(chart.data.datasets[datasetIndex].data[0].x, 
+                chart.data.datasets[datasetIndex].data[chart.data.datasets[datasetIndex].data.length -1].x)
+               // zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
+               
               }
             }
           },
