@@ -80,6 +80,8 @@
       end = smallChart.data.datasets[0].data[index].x
     }
     console.log(new Date(start), new Date(end))
+
+zoomBox()
     startFetch(start, end)
 
   })
@@ -115,6 +117,7 @@
   let k = 0
   function startFetch(min, max){
     const data = store.startFetch(min, max)
+    console.log(data)
     updateChart(data, false)
   }
 
@@ -167,10 +170,6 @@
     //chart.config.options.plugins.zoom.limits.x.min = data[0].x;
    // chart.config.options.plugins.zoom.limits.x.max = data[data.length - 1].x
 
-    chart.config.options.scales.x.min = data[0].x;
-    chart.config.options.scales.x.max = data[data.length - 1].x;
-
- 
 
     smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
     smallChart.config.options.layout.padding.right = chart.width - chart.chartArea.right
@@ -206,7 +205,8 @@
     smallChart.canvas.onmouseup = ()=>{
       smallChart.stop();
       smallChart.update('none')
-      startFetch(mainMin, mainMax)
+      console.log(mainMin, mainMax)
+     startFetch(mainMin, mainMax)
     }
     const data = store.getChart
     updateChart(data, true)
@@ -512,12 +512,7 @@
             const max = findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0));
   
             startFetch(smallChart.data.datasets[0].data[min].x, smallChart.data.datasets[0].data[max].x)
-            chart.stop();
-            smallChart.stop();
-            chart.update();
-            smallChart.update('none');
-            
-            zoomBox(smallChart.data.datasets[0].data[min].x, smallChart.data.datasets[0].data[max].x)
+ //
       
 
           },
@@ -709,7 +704,7 @@ function  zoomBox(min, max){
   let chart = lineRef.value.chartInstance;
   const {ctx, canvas, chartArea: { top, bottom, left, right, width, height }, scales: {x, y} } = smallChart; 
 
- // let min = chart.config.options.scales.x.min;
+  //let min = chart.config.options.scales.x.min;
  // let max = chart.config.options.scales.x.max;
  
   smallChart.update('none')
@@ -770,9 +765,9 @@ function  zoomBox(min, max){
       minChart1 =dataset1.value.data[0].x
     }
     if (mousemove.offsetX >= x.getPixelForValue(minChart1) - 10 && mousemove.offsetX <= x.getPixelForValue(minChart1) + 10 ||
-        mousemove.offsetX >= x.getPixelForValue(chart.config.options.scales.x.max) - 10 && mousemove.offsetX <= x.getPixelForValue(chart.config.options.scales.x.max) + 10){
+        mousemove.offsetX >= x.getPixelForValue(dataset1.value.data[dataset1.value.data.length -1].x) - 10 && mousemove.offsetX <= x.getPixelForValue(dataset1.value.data[dataset1.value.data.length -1].x) + 10){
       canvas.style.cursor = 'ew-resize'
-    }else if(mousemove.offsetX > x.getPixelForValue(minChart1) + 10 && mousemove.offsetX < x.getPixelForValue(chart.config.options.scales.x.max) - 10){
+    }else if(mousemove.offsetX > x.getPixelForValue(minChart1) + 10 && mousemove.offsetX < x.getPixelForValue(dataset1.value.data[dataset1.value.data.length -1].x) - 10){
       canvas.style.cursor = 'move'
     } else{
       canvas.style.cursor = 'default'
@@ -791,12 +786,12 @@ function  zoomBox(min, max){
 
 
   function dragStart(drag){
-   let minChart1 = chart.config.options.scales.x.min;
-   let maxChart1 = chart.config.options.scales.x.max;
+   let minChart1 = dataset1.value.data[0].x;
+   let maxChart1 = dataset1.value.data[dataset1.value.data.length -1].x;
     if (minChart1 === undefined || minChart1 === -1){
    //   minChart1 = data[0].x
     }
-    if(drag.offsetX >= x.getPixelForValue(minChart1) - 10 && drag.offsetX <= x.getPixelForValue(chart.config.options.scales.x.min) + 10){
+    if(drag.offsetX >= x.getPixelForValue(minChart1) - 10 && drag.offsetX <= x.getPixelForValue(dataset1.value.data[0].x) + 10){
       canvas.onmousemove = (e) => {
        // let chart = lineRef.value.chartInstance;
         dragMove(chart, e);
@@ -812,10 +807,10 @@ function  zoomBox(min, max){
     
         if(dragDelta.offsetX < left && scrollPoint === -1) scrollPoint = 0; 
         if(dragDelta.offsetX > right && scrollPoint === -1){
-          scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1;
+          scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, new Date(dataset1.value.data[dataset1.value.data.length -1].x).setHours(0, 0, 0, 0)) - 1;
         } 
-        if(scrollPoint > findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1) {
-          scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.max).setHours(0, 0, 0, 0)) - 1
+        if(scrollPoint > findClosestNumber(smallChart.data.datasets[0].data, new Date(dataset1.value.data[dataset1.value.data.length -1].x).setHours(0, 0, 0, 0)) - 1) {
+          scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, new Date(dataset1.value.data[dataset1.value.data.length -1].x).setHours(0, 0, 0, 0)) - 1
         }
 
         let x1 =  smallChart.data.datasets[0].data[scrollPoint].x
@@ -832,8 +827,8 @@ function  zoomBox(min, max){
       }
     };
     
-    if(drag.offsetX >= x.getPixelForValue(chart.config.options.scales.x.max) - 10 &&
-     drag.offsetX <= x.getPixelForValue(chart.config.options.scales.x.max) + 10){
+    if(drag.offsetX >= x.getPixelForValue(dataset1.value.data[dataset1.value.data.length -1].x) - 10 &&
+     drag.offsetX <= x.getPixelForValue(dataset1.value.data[dataset1.value.data.length -1].x) + 10){
       canvas.onmousemove = (e) => {
          dragMove(chart, e);
       }
@@ -850,10 +845,10 @@ function  zoomBox(min, max){
         }
         if(dragDelta.offsetX < left && scrollPoint === -1){
           onsole.log('here2>')
-          scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0) ) + 1;
+          scrollPoint = findClosestNumber(smallChart.data.datasets[0].data, new Date(dataset1.value.data[0].x).setHours(0, 0, 0, 0) ) + 1;
         } 
-        if(scrollPoint!=-1 && scrollPoint < findClosestNumber(smallChart.data.datasets[0].data, new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1 ) {
-          scrollPoint = findClosestNumber(smallChart.data.datasets[0].data,  new Date(chart.config.options.scales.x.min).setHours(0, 0, 0, 0)) + 1
+        if(scrollPoint!=-1 && scrollPoint < findClosestNumber(smallChart.data.datasets[0].data, new Date(dataset1.value.data[0].x).setHours(0, 0, 0, 0)) + 1 ) {
+          scrollPoint = findClosestNumber(smallChart.data.datasets[0].data,  new Date(dataset1.value.data[0].x).setHours(0, 0, 0, 0)) + 1
         }
 
         chart.config.options.scales.x.max = smallChart.data.datasets[0].data[scrollPoint].x
@@ -862,13 +857,13 @@ function  zoomBox(min, max){
         chart.update('none');
         smallChart.update('none')
       // startFetch(chart.config.options.scales.x.min, smallChart.data.datasets[0].data[scrollPoint].x)
-        mainMin  = chart.config.options.scales.x.min;
+        mainMin  = dataset1.value.data[0].x;
        mainMax = smallChart.data.datasets[0].data[scrollPoint].x;
         zoomBoxItem(chart.config.options.scales.x.min, smallChart.data.datasets[0].data[scrollPoint].x)   
       }
     }
-    if(drag.offsetX > x.getPixelForValue(chart.config.options.scales.x.min) + 11 && 
-       drag.offsetX < x.getPixelForValue(chart.config.options.scales.x.max) - 11){
+    if(drag.offsetX > x.getPixelForValue(dataset1.value.data[0].x) + 11 && 
+       drag.offsetX < x.getPixelForValue(dataset1.value.data[dataset1.value.data.length -1].x) - 11){
       
         canvas.onmousemove = (e) => {
         //let chart = lineRef.value.chartInstance;
@@ -990,7 +985,7 @@ let smallChartOptions = computed(()=>{
      scales: {
        x: {
        // min: +dataset1.value.data[0].x,
-         // max: +data[data.length-1].x,
+        //  max: +data[data.length-1].x,
          type: 'time',       
          time: {
            unit: 'year',
