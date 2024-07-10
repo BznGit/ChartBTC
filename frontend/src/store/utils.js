@@ -7,7 +7,7 @@ const defaultData = class {
 
         // get days array ----------------------------------------------------------------/
         step.setDate(step.getDate() + 1);
-        this.lengthDays = 100;
+        this.lengthDays = 1000;
         this.arrDays = [];
         let cur = +curr;
         let nw = +step;
@@ -17,7 +17,7 @@ const defaultData = class {
             y += 5 - Math.random() * 10;
             let obj = {
                 x: new Date((+start + delta*i)).setHours(0, 0, 0, 0),
-                y: 10//y
+                y:10// y
             }
             this.arrDays.push(obj) // -> to base
         }

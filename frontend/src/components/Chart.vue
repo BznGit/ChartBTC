@@ -122,9 +122,9 @@ zoomBox()
   }
 
   function updateData(){
-    console.log(changedPointsArr.value)
+    console.log('changedPointsArr.value', changedPointsArr.value)
     store.updateData( changedPointsArr.value, selected.value)
-   // changedPointsArr.value = []
+    changedPointsArr.value = []
    let chart = lineRef.value.chartInstance;
   // if(highlighArrIndex.length!=0 && dataChanged.value == true){
             highlighArrIndex.forEach(index=>{
