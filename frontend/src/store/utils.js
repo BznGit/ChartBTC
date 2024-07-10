@@ -7,7 +7,7 @@ const defaultData = class {
 
         // get days array ----------------------------------------------------------------/
         step.setDate(step.getDate() + 1);
-        this.lengthDays = 1000;
+        this.lengthDays = 100;
         this.arrDays = [];
         let cur = +curr;
         let nw = +step;
@@ -17,7 +17,7 @@ const defaultData = class {
             y += 5 - Math.random() * 10;
             let obj = {
                 x: new Date((+start + delta*i)).setHours(0, 0, 0, 0),
-                y: y
+                y: 10//y
             }
             this.arrDays.push(obj) // -> to base
         }
@@ -44,7 +44,7 @@ const defaultData = class {
     }
 
     updateData(arr, arrDays, step, selected){
-        console.log('selected>', selected)
+    
         let mode = 0
         switch(selected){
             case 'equals': mode = 0
@@ -56,19 +56,24 @@ const defaultData = class {
         }
         let delta = 0
         if(step != 1) delta = Math.trunc(step / 2)
-        console.log('delta>', delta)
-        
+        console.log('arr>', arr)
+        console.log('arr>', )
         let end = arrDays.findIndex(item => item.x === arr[arr.length-1].x) + delta
         if(end > arrDays.length -1) end = arrDays.length - 1
         arr.forEach(elem => {   
             let index = arrDays.findIndex(item => item.x === elem.x) - delta
+            console.log(index, end)
             if(index < 0) index = 0 
             let dl = elem.y -  arrDays[index].y    
             for(let i = index; i <= end; i++){
+                console.log(elem.y)
                 if(mode != 0) 
                     arrDays[i].y = arrDays[i].y + dl;
-                else
-                     arrDays[i].y = elem.y
+                else{
+                    arrDays[i].y = elem.y
+               
+                }
+                   
             }   
         });
         return arrDays

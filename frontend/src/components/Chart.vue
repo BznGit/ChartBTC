@@ -53,7 +53,6 @@
     let chart = lineRef.value.chartInstance;
     let smallChart = smallLineRef.value.chartInstance;
     let period = null;
-    console.log(store.arrDays)
     switch(newDevision){
       case 'day': period = 7;
         break;
@@ -73,13 +72,16 @@
       
       let index = findClosestNumber(smallChart.data.datasets[0].data, chart.data.datasets[0].data[0].x);
       start = smallChart.data.datasets[0].data[index].x;
-      let curr = new Date(start);
-      curr.setDate(curr.getDate() + period);
+      let curr = new Date(start)
+      curr.setDate(curr.getDate() + period)
+   
       index = findClosestNumber(smallChart.data.datasets[0].data, +curr);
+      console.log(index)
       end = smallChart.data.datasets[0].data[index].x
     }
+    console.log(new Date(start), new Date(end))
     startFetch(start, end)
-    
+
   })
 
   
@@ -119,14 +121,27 @@
   function updateData(){
     console.log(changedPointsArr.value)
     store.updateData( changedPointsArr.value, selected.value)
-    changedPointsArr.value = []
+   // changedPointsArr.value = []
+   let chart = lineRef.value.chartInstance;
+  // if(highlighArrIndex.length!=0 && dataChanged.value == true){
+            highlighArrIndex.forEach(index=>{
+              chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
+              chart.data.datasets[0].backgroundColor[index] = '#0068dd'
+              
+            })
+            console.log('dataChanged.value>>',dataChanged.value)
+            dataChanged.value == false
+       
+            highlighArrIndex = []
+            chart.update()
+      //    }
     
   }
 
 
   // Update chart ------------------------------------------------------ 
   function updateChart(allData, def){
-   // console.log(allData)
+    console.log('updateChart---', allData)
     let data = allData.chart;
     let data1 = allData.smallChart;
     step.value = allData.step
@@ -152,8 +167,9 @@
     //chart.config.options.plugins.zoom.limits.x.min = data[0].x;
    // chart.config.options.plugins.zoom.limits.x.max = data[data.length - 1].x
 
-   // chart.config.options.scales.x.min = data[0].x;
-   // chart.config.options.scales.x.max = data[data.length - 1].x;
+    chart.config.options.scales.x.min = data[0].x;
+    chart.config.options.scales.x.max = data[data.length - 1].x;
+
  
 
     smallChart.config.options.layout.padding.left =  chart.chartArea.left - chart.config.options.layout.padding.left
@@ -289,18 +305,7 @@
       const {ctx, canvas,  scales: {x, leftyaxis}}  = chart; 
       
       canvas.onclick = (e) =>{ 
-          if(highlighArrIndex.length!=0 && dataChanged.value == true){
-            highlighArrIndex.forEach(index=>{
-              chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
-              chart.data.datasets[0].backgroundColor[index] = '#0068dd'
-              
-            })
-            console.log('dataChanged.value>>',dataChanged.value)
-            dataChanged.value == false
-       
-            highlighArrIndex = []
-            chart.update()
-          }
+          
       };
       canvas.oncontextmenu = (e) =>{ 
           e.preventDefault();
@@ -535,53 +540,67 @@
           // this solely works for continous, numerical x-axis scales (no categories or dates)!
           onDragStart: function (e, datasetIndex, index, value) {
             hightlightHashrate.value = value.y
-            if (highlighArrIndex.length ==0) highlighArrIndex.push(index)
+            console.log('start highlighArrIndex>>', highlighArrIndex)
+            if (highlighArrIndex.length == 0) highlighArrIndex.push(index)
             let chart = lineRef.value.chartInstance;
             let smallChart = smallLineRef.value.chartInstance;
             chart.data.datasets[datasetIndex].pointBorderColor[index] = 'red'
             chart.data.datasets[datasetIndex].backgroundColor[index] = 'red'
-            let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index].x)
-            changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
+           // let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index].x)
+           // changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
+          console.log('drag start!')
             chart.update()
         
           },
           onDrag: function (e, datasetIndex, index, value) {
             
             hightlightHashrate.value = value.y
-            
+         
             if (highlighArrIndex.length!=0){
               let chart = lineRef.value.chartInstance;
               let smallChart = smallLineRef.value.chartInstance;
               let point = +value.x
-              console.log(highlighArrIndex[0])
+           
               let left = +chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x;
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
               if((left <= point &&  point <= right) || (left >= point &&  point >= right)){
                 hightlightHashrate.value = value.y
                // chart.config.options.scales['leftyaxis'].max = value.y + value.y*0.1;
+    
              
-                changedPointsArr.value =[]
-                console.log(new Date(chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x))
-
                 highlighArrIndex.forEach(index1=>{
                   let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index1].x) 
+            
                   if(selected.value === 'equals'){
                     console.log(index1, indexNear)
                     chart.data.datasets[datasetIndex].data[index1].y = value.y
                     smallChart.data.datasets[datasetIndex].data[indexNear].y = value.y;
+                    let exist = changedPointsArr.value.findIndex(item=>item.x ===store.arrDays[index1].x)
+                    console.log(exist, changedPointsArr.value, store.arrDays[index1].x)
+                    if(exist==-1){
+                      store.arrDays[index1].y = value.y
+                      changedPointsArr.value.push(store.arrDays[index1] )
+                    } else {
+
+                      changedPointsArr.value[exist].y =value.y
+                    }
+
+                    
                   }
                   if(selected.value === 'increment'){
                     chart.data.datasets[datasetIndex].data[index1].y = chart.data.datasets[datasetIndex].data[index1].y + 1
                     smallChart.data.datasets[datasetIndex].data[indexNear].y =smallChart.data.datasets[datasetIndex].data[indexNear].y + 1
+                    changedPointsArr.value.push(store.arrDays[index1].y =store.arrDays[index1].y + 1)
                   }
                   if(selected.value === 'decrement'){
                     chart.data.datasets[datasetIndex].data[index1].y = chart.data.datasets[datasetIndex].data[index1].y - 1
                     smallChart.data.datasets[datasetIndex].data[indexNear].y =smallChart.data.datasets[datasetIndex].data[indexNear].y - 1;
+                    changedPointsArr.value.push(store.arrDays[index1].y =store.arrDays[index1].y -1 )
                   }
-                  changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
+                  
                 })
                 let lim = 1;
-                console.log(new Date(changedPointsArr.value[0].x))
+                console.log(changedPointsArr.value)
                 // Set scales max/min Chart -----------------------------
                 let arr = chart.config.data.datasets[datasetIndex].data
                 let max = arr.reduce((prev,cur) => cur.y > prev.y? cur : prev);
@@ -602,7 +621,7 @@
                 zoomBox(chart.data.datasets[datasetIndex].data[0].x, 
                 chart.data.datasets[datasetIndex].data[chart.data.datasets[datasetIndex].data.length -1].x)
                // zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max )
-               
+         
               }
             }
           },
@@ -611,7 +630,7 @@
             
             updateData()
            // changedPointsArr.value =[]
-       
+           highlighArrIndex==[]
           },
         },
 
