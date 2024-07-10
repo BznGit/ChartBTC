@@ -53,7 +53,7 @@
     let chart = lineRef.value.chartInstance;
     let smallChart = smallLineRef.value.chartInstance;
     let period = null;
-
+    console.log(store.arrDays)
     switch(newDevision){
       case 'day': period = 7;
         break;
@@ -295,7 +295,9 @@
               chart.data.datasets[0].backgroundColor[index] = '#0068dd'
               
             })
+            console.log('dataChanged.value>>',dataChanged.value)
             dataChanged.value == false
+       
             highlighArrIndex = []
             chart.update()
           }
@@ -541,7 +543,7 @@
             let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index].x)
             changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
             chart.update()
-           
+        
           },
           onDrag: function (e, datasetIndex, index, value) {
             
@@ -593,7 +595,7 @@
                 min = arr.reduce((prev,cur) => cur.y < prev.y? cur : prev);
                 smallChart.config.options.scales['leftyaxis'].max = max.y + lim
                 smallChart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
-                dataChanged.value = true;
+             
                 chart.update('none')
                 smallChart.update('none')
                 console.log('drag zoom',chart.config.options.scales.x.min  )
