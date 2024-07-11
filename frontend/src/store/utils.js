@@ -17,7 +17,7 @@ const defaultData = class {
             y += 5 - Math.random() * 10;
             let obj = {
                 x: new Date((+start + delta*i)).setHours(0, 0, 0, 0),
-                y:10// y
+                y: y
             }
             this.arrDays.push(obj) // -> to base
         }
@@ -62,11 +62,11 @@ const defaultData = class {
         if(end > arrDays.length -1) end = arrDays.length - 1
         arr.forEach(elem => {   
             let index = arrDays.findIndex(item => item.x === elem.x) - delta
-            console.log(index, end)
+          //  console.log(index, end)
             if(index < 0) index = 0 
             let dl = elem.y -  arrDays[index].y    
             for(let i = index; i <= end; i++){
-                console.log(elem.y)
+             //   console.log(elem.y)
                 if(mode != 0) 
                     arrDays[i].y = arrDays[i].y + dl;
                 else{

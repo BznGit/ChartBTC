@@ -123,22 +123,11 @@ zoomBox()
 
   function updateData(){
     console.log('changedPointsArr.value', changedPointsArr.value)
+    if(changedPointsArr.value.length == 0) return
     store.updateData( changedPointsArr.value, selected.value)
     changedPointsArr.value = []
-   let chart = lineRef.value.chartInstance;
-  // if(highlighArrIndex.length!=0 && dataChanged.value == true){
-            highlighArrIndex.forEach(index=>{
-              chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
-              chart.data.datasets[0].backgroundColor[index] = '#0068dd'
-              
-            })
-            console.log('dataChanged.value>>',dataChanged.value)
-            dataChanged.value == false
-       
-            highlighArrIndex = []
-            chart.update()
-      //    }
-    
+    let chart = lineRef.value.chartInstance;
+    chart.update()    
   }
 
 
@@ -213,24 +202,51 @@ zoomBox()
   });
 
   function setHightlightHashrate(event){
+    console.log('ededdeded')
     if(highlighArrIndex.length==0) return
     let chart = lineRef.value.chartInstance
     let smallChart = smallLineRef.value.chartInstance
-    highlighArrIndex.forEach(index=>{
+    let datasetIndex = 0
+    highlighArrIndex.forEach(chartIndex => {
+      let smallChartIndex  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[chartIndex].x) 
+      let mainIndex = findClosestNumber(store.arrDays, chart.data.datasets[datasetIndex].data[chartIndex].x)
       if(selected.value === 'equals'){
-        chart.data.datasets[0].data[index].y =  parseFloat(hightlightHashrate.value)
-        smallChart.data.datasets[0].data [index].y = parseFloat(hightlightHashrate.value)
+        chart.data.datasets[datasetIndex].data[chartIndex].y = parseFloat(hightlightHashrate.value)
+        smallChart.data.datasets[datasetIndex].data[smallChartIndex].y = parseFloat(hightlightHashrate.value);
+        let tempIndex = changedPointsArr.value.findIndex(item=>item.x ===store.arrDays[mainIndex].x)
+        if(tempIndex==-1){
+          let obj ={
+            x: store.arrDays[mainIndex].x,
+            y: parseFloat(hightlightHashrate.value)
+          }
+          changedPointsArr.value.push(obj)
+        } else changedPointsArr.value[tempIndex].y = parseFloat(hightlightHashrate.value)
       }
       if(selected.value === 'increment'){
-        chart.data.datasets[0].data[index].y = chart.data.datasets[0].data[index].y + parseFloat(hightlightHashrate.value)
-        smallChart.data.datasets[0].data [index].y = smallChart.data.datasets[0].data [index].y + parseFloat(hightlightHashrate.value)
+        chart.data.datasets[datasetIndex].data[chartIndex].y = chart.data.datasets[datasetIndex].data[chartIndex].y + parseFloat(hightlightHashrate.value)
+        smallChart.data.datasets[datasetIndex].data[smallChartIndex].y =smallChart.data.datasets[datasetIndex].data[smallChartIndex].y + parseFloat(hightlightHashrate.value)
+        let tempIndex = changedPointsArr.value.findIndex(item=>item.x ===store.arrDays[mainIndex].x)
+        if(tempIndex==-1){
+          let obj ={
+            x: store.arrDays[mainIndex].x,
+            y: store.arrDays[mainIndex].y + parseFloat(hightlightHashrate.value)
+          }
+          changedPointsArr.value.push(obj)
+        } else changedPointsArr.value[tempIndex].y = changedPointsArr.value[tempIndex].y + parseFloat(hightlightHashrate.value)
       }
       if(selected.value === 'decrement'){
-        chart.data.datasets[0].data[index].y = chart.data.datasets[0].data[index].y - parseFloat(hightlightHashrate.value)
-        smallChart.data.datasets[0].data [index].y = smallChart.data.datasets[0].data [index].y - parseFloat(hightlightHashrate.value)
+        chart.data.datasets[datasetIndex].data[chartIndex].y = chart.data.datasets[datasetIndex].data[chartIndex].y - parseFloat(hightlightHashrate.value)
+        smallChart.data.datasets[datasetIndex].data[smallChartIndex].y =smallChart.data.datasets[datasetIndex].data[smallChartIndex].y - parseFloat(hightlightHashrate.value);
+        let tempIndex = changedPointsArr.value.findIndex(item=>item.x ===store.arrDays[mainIndex].x)
+        if(tempIndex==-1){
+          let obj ={
+            x: store.arrDays[mainIndex].x,
+            y: store.arrDays[mainIndex].y - parseFloat(hightlightHashrate.value)
+          }
+          changedPointsArr.value.push(obj)
+        } else changedPointsArr.value[tempIndex].y = changedPointsArr.value[tempIndex].y - parseFloat(hightlightHashrate.value)
       }
-      let indexNear  = findClosestNumber(smallChart.data.datasets[0].data, chart.data.datasets[0].data[index].x) 
-      changedPointsArr.value.push(smallChart.data.datasets[0].data[indexNear])
+      
     })
   
     let min = chart.data.datasets[0].data.reduce((prev,cur) => cur.y < prev.y? cur : prev);
@@ -242,15 +258,7 @@ zoomBox()
     max = smallChart.data.datasets[0].data.reduce((prev,cur) => cur.y > prev.y? cur : prev);
     smallChart.config.options.scales['leftyaxis'].min = min.y - min.y*0.01;
     smallChart.config.options.scales['leftyaxis'].max = max.y + max.y*0.01;
-    if(highlighArrIndex.length!=0){
-           
-           highlighArrIndex.forEach(index=>{
-             chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
-             chart.data.datasets[0].backgroundColor[index] = '#0068dd'
-             highlighArrIndex = []
-           })
-           chart.update()
-         } 
+ 
     chart.update()  
     smallChart.update('none')
     zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max)
@@ -303,9 +311,20 @@ zoomBox()
 
     afterInit: (chart, args, plugins) => {
       const {ctx, canvas,  scales: {x, leftyaxis}}  = chart; 
-      
+      let i=0
       canvas.onclick = (e) =>{ 
-          
+        i++
+        if(highlighArrIndex.length>1 || (highlighArrIndex.length==1 && i>1) ||(highlighArrIndex.length==1 && dataChanged.value == true) ){
+           
+           highlighArrIndex.forEach(index=>{
+             chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
+             chart.data.datasets[0].backgroundColor[index] = '#0068dd'
+             highlighArrIndex = []
+           })
+           dataChanged.value =false
+           chart.update()
+           i=0
+         }
       };
       canvas.oncontextmenu = (e) =>{ 
           e.preventDefault();
@@ -541,9 +560,9 @@ zoomBox()
             let smallChart = smallLineRef.value.chartInstance;
             chart.data.datasets[datasetIndex].pointBorderColor[index] = 'red'
             chart.data.datasets[datasetIndex].backgroundColor[index] = 'red'
-           // let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index].x)
-           // changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
-          console.log('drag start!')
+            // let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index].x)
+            // changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
+            console.log('drag start!')
             chart.update()
         
           },
@@ -563,34 +582,44 @@ zoomBox()
                // chart.config.options.scales['leftyaxis'].max = value.y + value.y*0.1;
     
              
-                highlighArrIndex.forEach(index1=>{
-                  let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index1].x) 
-            
+                highlighArrIndex.forEach(chartIndex => {
+                  let smallChartIndex  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[chartIndex].x) 
+                  let mainIndex = findClosestNumber(store.arrDays, chart.data.datasets[datasetIndex].data[chartIndex].x)
                   if(selected.value === 'equals'){
-                    console.log(index1, indexNear)
-                    chart.data.datasets[datasetIndex].data[index1].y = value.y
-                    smallChart.data.datasets[datasetIndex].data[indexNear].y = value.y;
-                    let exist = changedPointsArr.value.findIndex(item=>item.x ===store.arrDays[index1].x)
-                    console.log(exist, changedPointsArr.value, store.arrDays[index1].x)
-                    if(exist==-1){
-                      store.arrDays[index1].y = value.y
-                      changedPointsArr.value.push(store.arrDays[index1] )
-                    } else {
-
-                      changedPointsArr.value[exist].y =value.y
-                    }
-
-                    
+                    chart.data.datasets[datasetIndex].data[chartIndex].y = value.y
+                    smallChart.data.datasets[datasetIndex].data[smallChartIndex].y = value.y;
+                    let tempIndex = changedPointsArr.value.findIndex(item=>item.x ===store.arrDays[mainIndex].x)
+                    if(tempIndex==-1){
+                      let obj ={
+                        x: store.arrDays[mainIndex].x,
+                        y: value.y
+                      }
+                      changedPointsArr.value.push(obj)
+                    } else changedPointsArr.value[tempIndex].y = value.y 
                   }
                   if(selected.value === 'increment'){
-                    chart.data.datasets[datasetIndex].data[index1].y = chart.data.datasets[datasetIndex].data[index1].y + 1
-                    smallChart.data.datasets[datasetIndex].data[indexNear].y =smallChart.data.datasets[datasetIndex].data[indexNear].y + 1
-                    changedPointsArr.value.push(store.arrDays[index1].y =store.arrDays[index1].y + 1)
+                    chart.data.datasets[datasetIndex].data[chartIndex].y = chart.data.datasets[datasetIndex].data[chartIndex].y + 1
+                    smallChart.data.datasets[datasetIndex].data[smallChartIndex].y =smallChart.data.datasets[datasetIndex].data[smallChartIndex].y + 1
+                    let tempIndex = changedPointsArr.value.findIndex(item=>item.x ===store.arrDays[mainIndex].x)
+                    if(tempIndex==-1){
+                      let obj ={
+                        x: store.arrDays[mainIndex].x,
+                        y: store.arrDays[mainIndex].y + 1
+                      }
+                      changedPointsArr.value.push(obj)
+                    } else changedPointsArr.value[tempIndex].y = changedPointsArr.value[tempIndex].y + 1
                   }
                   if(selected.value === 'decrement'){
-                    chart.data.datasets[datasetIndex].data[index1].y = chart.data.datasets[datasetIndex].data[index1].y - 1
-                    smallChart.data.datasets[datasetIndex].data[indexNear].y =smallChart.data.datasets[datasetIndex].data[indexNear].y - 1;
-                    changedPointsArr.value.push(store.arrDays[index1].y =store.arrDays[index1].y -1 )
+                    chart.data.datasets[datasetIndex].data[chartIndex].y = chart.data.datasets[datasetIndex].data[chartIndex].y - 1
+                    smallChart.data.datasets[datasetIndex].data[smallChartIndex].y =smallChart.data.datasets[datasetIndex].data[smallChartIndex].y - 1;
+                    let tempIndex = changedPointsArr.value.findIndex(item=>item.x ===store.arrDays[mainIndex].x)
+                    if(tempIndex==-1){
+                      let obj ={
+                        x: store.arrDays[mainIndex].x,
+                        y: store.arrDays[mainIndex].y - 1
+                      }
+                      changedPointsArr.value.push(obj)
+                    } else changedPointsArr.value[tempIndex].y = changedPointsArr.value[tempIndex].y - 1
                   }
                   
                 })
@@ -609,7 +638,7 @@ zoomBox()
                 min = arr.reduce((prev,cur) => cur.y < prev.y? cur : prev);
                 smallChart.config.options.scales['leftyaxis'].max = max.y + lim
                 smallChart.config.options.scales['leftyaxis'].min = (min.y - lim) < 0? 0 : (min.y - lim)
-             
+                dataChanged.value = true;
                 chart.update('none')
                 smallChart.update('none')
                 console.log('drag zoom',chart.config.options.scales.x.min  )
@@ -622,10 +651,9 @@ zoomBox()
           },
           onDragEnd: function (e, datasetIndex, index, value) {
             console.log('drag end!')
-            
+
             updateData()
-           // changedPointsArr.value =[]
-           highlighArrIndex==[]
+
           },
         },
 
