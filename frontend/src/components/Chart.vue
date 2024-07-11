@@ -126,6 +126,7 @@ zoomBox()
     if(changedPointsArr.value.length == 0) return
     store.updateData( changedPointsArr.value, selected.value)
     changedPointsArr.value = []
+    highlighArrIndex = []
     let chart = lineRef.value.chartInstance;
     chart.update()    
   }
@@ -569,12 +570,12 @@ zoomBox()
           onDrag: function (e, datasetIndex, index, value) {
             
             hightlightHashrate.value = value.y
-         
+            console.log('onDrag highlighArrIndex--->',highlighArrIndex)
             if (highlighArrIndex.length!=0){
               let chart = lineRef.value.chartInstance;
               let smallChart = smallLineRef.value.chartInstance;
               let point = +value.x
-           
+              console.log('onDrag highlighArrIndex after--->',highlighArrIndex)
               let left = +chart.data.datasets[datasetIndex].data[highlighArrIndex[0]].x;
               let right = +chart.data.datasets[datasetIndex].data[highlighArrIndex[highlighArrIndex.length-1]].x;
               if((left <= point &&  point <= right) || (left >= point &&  point >= right)){
@@ -651,7 +652,7 @@ zoomBox()
           },
           onDragEnd: function (e, datasetIndex, index, value) {
             console.log('drag end!')
-
+          
             updateData()
 
           },

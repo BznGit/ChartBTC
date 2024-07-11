@@ -36,6 +36,7 @@ const defaultData = class {
             i++;
         }
         while (i < arrDays.length && arrDays[i].x <= max) {
+
             data.push(arrDays[i]);
             i += step;
         }
@@ -89,14 +90,27 @@ const defaultData = class {
         const step = Math.max(1, Math.round((max - min) / 10000000000));
         const data = [];
         let i = 0;
-
+/*
         while (i < arrDays.length && arrDays[i].x < min) {
             i++;
         }
         while (i < arrDays.length && arrDays[i].x <= max) {
             data.push(arrDays[i]);
             i += step;
+        }*/
+
+        for(let i = 0; i < arrDays.length-1; i+=step){
+            let sum = 0
+            for(let j=i; j<i+step; j++){
+                  sum += arrDays[j].y
+            }
+            let obj = {
+                x: arrDays[i].x, 
+                y: sum/step
+            }
+            data.push(obj)
         }
+        console.log(data)
       //  console.log('getSmallChatData>>',data.length)
         return {chart: data, step: step}
     }
