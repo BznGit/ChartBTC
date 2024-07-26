@@ -4,6 +4,7 @@ let host = null;
 if(process.env.NODE_ENV === 'development') host = 'localhost'; else host = process.env.HOST;
 
 const whitelist = new Set(["https://example1.com", "https://example2.com", `http://136.243.156.190:${process.env.PORT}`, `http://localhost:${process.env.PORT}`]);
+
 const corsOptions = {
   optionsSuccessStatus: 200,
 
