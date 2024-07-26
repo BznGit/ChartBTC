@@ -1,12 +1,14 @@
 const cors = require("cors");
-const config = require("../config");
 
-const whitelist = new Set(["https://example1.com", "https://example2.com", `http://136.243.156.190:${config.port}`]);
+let host = null
+if(process.env.NODE_ENV === 'development') host = 'localhost'; else host = '136.243.156.190';
+
+const whitelist = new Set(["https://example1.com", "https://example2.com", `http://136.243.156.190:${process.env.PORT}`, `http://localhost:${process.env.PORT}`]);
 const corsOptions = {
   optionsSuccessStatus: 200,
 
   origin: function(origin, callback) {
-    if (origin === undefined) origin = `http://136.243.156.190:${config.port}`
+    if (origin === undefined) origin = `http://${host}:${process.env.PORT}`
     if (whitelist.has(origin)) {  
       callback(null, true);
     } else {

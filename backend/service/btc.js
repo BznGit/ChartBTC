@@ -9,7 +9,7 @@ function setExchangeformApi() {
             
             const rate = await api.getExchange();
             const diff = await api.getDiffBtc();
-
+           
             const btc = new BTC({
                 _id: new mongoose.Types.ObjectId(),
                 ask: rate.ask,

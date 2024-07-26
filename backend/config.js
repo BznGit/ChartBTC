@@ -1,4 +1,3 @@
 module.exports = {
-    port: 9000,
-    apiAskingIntervalHours: 24 
+     apiAskingIntervalHours: 24 
 }

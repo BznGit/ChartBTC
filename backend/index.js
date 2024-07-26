@@ -1,3 +1,5 @@
+require('dotenv').config();
+console.log(process.env.PORT) 
 const express = require("express");
 const router = require("./routes");
 const session = require("./middleware/session");
@@ -21,4 +23,4 @@ app.use(session);
 app.use(router);
 
 app.use(express.static('./dist')); 
-app.listen(config.port, () => console.log(`server is running on port ${config.port}`));
+app.listen(process.env.PORT, () => console.log(`server is running on port ${process.env.PORT}`));
