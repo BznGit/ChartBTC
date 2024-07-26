@@ -5,9 +5,9 @@ export default defineConfig({
   plugins: [vue()],
   server:{
     proxy: {
-      '/chart':'http://localhost:9001',
-      '/getchunk':'http://localhost:9001',
-      '/update':'http://localhost:9001',
+      '/chart':'http://localhost:9000',
+      '/getchunk':'http://localhost:9000',
+      '/update':'http://localhost:9000',
     },
   },
   build: {

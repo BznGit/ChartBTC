@@ -12,6 +12,101 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+.header{
+  display: flex;
+  width: 100vw;
+  height: 50px;
+  background-color: #054f90;
+  justify-content: space-between;
+  position: relative;
+
+}
+.items{
+  
+  display: flex;
+  height: 100%;
+  width: 110px;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.items:hover{
+  background-color: #0068dd;
+}
+
+.logo{
+  font-weight: bolder;
+  font-size: larger;
+
+}
+
+.login{
+  display: flex;
+  position: absolute;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  left: 50%;
+  top: 50%;
+  height: max-content;
+  padding: 10px;
+  padding-top: 20px;
+  padding-bottom: 30px;
+  width: 250px;
+
+  transform: translate(-50%, -50%);
+  background-color: #054f90;
+  color: white;
+  z-index: 1;
+
+}
+.label{
+  margin-top: 20px;
+  margin-left: 35px;
+  margin-right: auto;
+}
+input{
+  margin-top: 20px;
+  height: 20px;
+}
+.registr{
+  margin-top: 20px;
+}
+.registr:hover{
+  color: #949595;
+}
+.registr>span{
+  text-decoration-line: underline;
+}
+.button{
+  margin-top: 20px;
+  background-color: #ffffff;
+  color: #054f90;
+  width: 175px;
+}
+
+.button:hover{
+   background-color: #949595;
+}
+
+.close{
+  margin-top: -10px;
+  margin-right: 10px;
+  margin-left: auto;
+}
+.close:hover{
+  color:  #949595;
+}
+
+
+.main{
+margin-top: auto;
+margin-bottom: auto;
+}
+
+
 
 a {
   font-weight: 500;
@@ -26,8 +121,7 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+
 }
 
 h1 {
@@ -98,17 +192,15 @@ input[type="radio"]:checked + label {
   padding: 2em;
 }
 .chart{
+  margin-top: 15vh;
   margin-left: auto;
   margin-right: auto;
   height: 70vh;
-  width:  70vw;
+  width:  80vw;
 }
 #app {
   display: flex;
-  margin-left: auto;
-  margin-right: auto;
-  justify-content: center;
-  padding: 2rem;
+  flex-direction: column;
   text-align: center;
 }
 
