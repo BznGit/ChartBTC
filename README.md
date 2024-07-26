@@ -7,5 +7,5 @@
    From main app fold:
    
 - `cd frontend` > `npm i`> `npm run dev` (or `npm run build`)
--  `cd backend` > /`npm i`>  `nodemon app.j`s  (or `node app`)
+-  `cd backend` > /`npm i`>  `npm run dev`  (or `node index.js`)
 "# ChartBTC2" 
