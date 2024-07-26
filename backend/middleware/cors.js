@@ -1,12 +1,12 @@
 const cors = require("cors");
 const config = require("../config");
 
-const whitelist = new Set(["https://example1.com", "https://example2.com", `http://127.0.0.1:${config.port}`]);
+const whitelist = new Set(["https://example1.com", "https://example2.com", `http://136.243.156.190:${config.port}`]);
 const corsOptions = {
   optionsSuccessStatus: 200,
 
   origin: function(origin, callback) {
-    if (origin === undefined) origin = `http://127.0.0.1:${config.port}`
+    if (origin === undefined) origin = `http://136.243.156.190:${config.port}`
     if (whitelist.has(origin)) {  
       callback(null, true);
     } else {
