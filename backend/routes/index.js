@@ -5,7 +5,7 @@ const authController = require('../controller/auth');
 const btcController = require('../controller/btc');
 const session = require('../middleware/session')
 
-router.post('/regitrate', authController.regitrate);
+router.post('/registrate', authController.registrate);
 router.post('/login', authController.login);
 router.get('/btc-chart', btcController.getBtcCharts);
 // all routes that come after this middleware are protected

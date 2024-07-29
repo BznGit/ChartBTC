@@ -18,19 +18,19 @@ async function login(email, passwordIn) {
     }
 }
 
-async function sigin(email, passwordIn, nameIn) {
+async function registrate(email, password, name) {
     try {
-        const user = await User.findOne({ login: email })
-        console.log('new>>', email, passwordIn, nameIn)
+        const user = await User.findOne({ email: email })
+        console.log('new>>', email, password, name)
         console.log('user>>', user)
         if (!user) {
             console.log('set')
             
             const user = new User({
                 _id: new mongoose.Types.ObjectId(),
-                name: nameIn,
-                login: email,
-                password: passwordIn
+                name: name,
+                email: email,
+                password: password
             })
             await user.save()
             return user
@@ -42,15 +42,15 @@ async function sigin(email, passwordIn, nameIn) {
     }
 }
 
-async function updateUser(id, loginIn, passwordIn, nameIn) {
+async function updateUser(id, email, password, name) {
     try {
-        console.log(id, loginIn, passwordIn, nameIn)
+        console.log(id, login, password, name)
         await User.updateOne({_id: id}, 
             {
                $set: {
-                    name: nameIn,
-                    login: loginIn,
-                    password: passwordIn
+                    name: name,
+                    login: email,
+                    password: password
                 }
             }
         )
@@ -83,7 +83,7 @@ async function deleteUser(id) {
 
 module.exports = {
     login,
-    sigin,
+    registrate,
     updateUser,
     deleteUser
 };

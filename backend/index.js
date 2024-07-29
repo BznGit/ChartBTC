@@ -16,8 +16,8 @@ app.use(express.json());
 // app.set('trust proxy', 1);
 
 //setup CORS logic
-app.options("*", corsMw);
-app.use(corsMw);
+//app.options("*", corsMw);
+//app.use(corsMw);
 
 app.use(session);
 app.use(router);
