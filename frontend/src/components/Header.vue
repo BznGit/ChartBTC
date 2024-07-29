@@ -11,21 +11,21 @@
       <span>{{authStat}}</span>
     </div>
   </div>
-  <div class="login" v-if="login">
+  <div class="login" v-if="loginOpen">
     <div class="close" @click="closeLogin">close</div>
-    <input id="login" type="text" placeholder="login"/>
-    <input id="password" type="password" placeholder="password"/>
-    <div class="button">
+    <input id="login" v-model="emailUser" type="text" placeholder="email"/>
+    <input id="password" v-model="passwordUser" type="password" placeholder="password"/>
+    <div class="button" @click="letLogin">
       <span>Login</span>
     </div>
     <div class="registr"@click="openReg" >
       <span >Registration</span>
     </div>
   </div>
-  <div class="login reg" v-if="registr">
+  <div class="login reg" v-if="registrOpen">
     <div class="close" @click="closeReg">close</div>
     <input id="name" type="text" placeholder="name"/>
-    <input id="login" type="text" placeholder="login"/>
+    <input id="login" type="text" placeholder="email"/>
     <input id="password" type="password" placeholder="password"/>
     <input id="password" type="password" placeholder="Confirm password"/>
     <div class="button">
@@ -36,24 +36,38 @@
 
 <script setup>
   import { ref, reactive, onMounted, computed, watch, onUpdated, defineCustomElement } from 'vue';
-  let login = ref(false)
-  let registr = ref(false)
-  let authStat = ref('Login')
-  let name = ref()
-
+  
+  // Login modal window open/close ------------------------------ 
+  let loginOpen = ref(false)
+  let registrOpen = ref(false)
+ 
   function openLogin(){
-    login.value = true
+    loginOpen.value = true
   }
   function closeLogin(){
-    login.value = false
+    loginOpen.value = false
   }
   function openReg(){
-    login.value = false
-    registr.value = true
+    loginOpen.value = false
+    registrOpen.value = true
   }
   function closeReg(){
-    registr.value = false
+    registrOpen.value = false
   }
+
+// Login handler -------------------------------------------------
+import { loginUser } from '../api/index'
+let authStat = ref('Login')
+let name = ref()
+let emailUser = ref()
+let passwordUser = ref()
+
+function letLogin(){
+  const user = loginUser(emailUser.value, passwordUser.value)
+  console.log(user)
+}
+
+
 
 </script>
 

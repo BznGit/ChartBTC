@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: 'nonename'
     },
-    login: {
+    email: {
         type: String,
         required: true
     },

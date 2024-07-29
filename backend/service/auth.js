@@ -2,9 +2,9 @@ const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const User = require('../db/models/user');
 
-async function login(loginIn, passwordIn) {
+async function login(email, passwordIn) {
     try {
-        const user = await User.findOne({login: loginIn })
+        const user = await User.findOne({email: email })
         console.log(user)
      
         const match = await bcrypt.compare( passwordIn, user.password);
@@ -18,10 +18,10 @@ async function login(loginIn, passwordIn) {
     }
 }
 
-async function sigin(loginIn, passwordIn, nameIn) {
+async function sigin(email, passwordIn, nameIn) {
     try {
-        const user = await User.findOne({ login: loginIn })
-        console.log('new>>', loginIn, passwordIn, nameIn)
+        const user = await User.findOne({ login: email })
+        console.log('new>>', email, passwordIn, nameIn)
         console.log('user>>', user)
         if (!user) {
             console.log('set')
@@ -29,13 +29,13 @@ async function sigin(loginIn, passwordIn, nameIn) {
             const user = new User({
                 _id: new mongoose.Types.ObjectId(),
                 name: nameIn,
-                login:loginIn,
+                login: email,
                 password: passwordIn
             })
-            const ass = await user.save()
+            await user.save()
             return user
         } else {
-            return Promise.reject(`User whith login '${loginIn}' already exist! `);
+            return Promise.reject(`User whith login '${email}' already exist! `);
         }
     } catch(err) {
         return Promise.reject('user not found');
