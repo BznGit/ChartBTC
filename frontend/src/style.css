@@ -34,6 +34,7 @@
 
 .items:hover{
   background-color: #0068dd;
+  cursor: pointer;
 }
 
 .logo{
@@ -76,6 +77,7 @@ input{
 }
 .registr:hover{
   color: #949595;
+  cursor: pointer;
 }
 .registr>span{
   text-decoration-line: underline;
@@ -87,8 +89,18 @@ input{
   width: 175px;
 }
 
+.save{
+  margin-top: 50px;
+  margin-left: auto;
+  margin-right: 0;
+  background-color:#054f90;
+  color: #ffffff;
+  width: 175px;
+}
+
 .button:hover{
    background-color: #949595;
+   cursor: pointer;
 }
 
 .close{
@@ -98,6 +110,7 @@ input{
 }
 .close:hover{
   color:  #949595;
+  cursor: pointer;
 }
 
 

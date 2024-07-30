@@ -27,6 +27,9 @@
   <LineChart ref="lineRef" :chartData="chartData" :options="chartOptions"  />
   <LineChart class= "smallChart"  ref="smallLineRef" :chartData="smallChartData" :options="smallChartOptions"  />
   <span>{{ date1 }} - {{ date2 }}</span>
+  <div class="button save" v-if="store.getCurrUser" @click="saveCharts">
+    <span>Save</span>
+  </div>
 </template>
 
  <script setup>
@@ -47,6 +50,12 @@
   const step = ref()
   let changedPointsArr = ref([])
   const store = useStore();
+
+  // Save charts -------------------------------------------------------------------------------/
+  async function saveCharts(){
+    const save = await store.saveChart()
+    console.log('save-->', save)
+  }
 
   // Resolving anchors "day", "week", "month", "all" ------------------------------------------/
   watch(division, (newDevision, oldDivision) => {

@@ -44,12 +44,12 @@ async function registrate(email, password, name) {
 
 async function updateUser(id, email, password, name) {
     try {
-        console.log(id, login, password, name)
+        console.log(id, email, password, name)
         await User.updateOne({_id: id}, 
             {
                $set: {
                     name: name,
-                    login: email,
+                    email: email,
                     password: password
                 }
             }
@@ -69,7 +69,7 @@ async function updateUser(id, email, password, name) {
 
 async function deleteUser(id) {
     try {
-        const deleted = await User.deleteOne({_id: id+1})
+        const deleted = await User.deleteOne({_id: id})
 
         if (deleted.deletedCount) {
             return true
@@ -81,9 +81,33 @@ async function deleteUser(id) {
     }
 }
 
+async function updateData(id, arr) {
+    try {
+
+        await User.updateOne({_id: id}, 
+            {
+               $set: {
+                    data: arr
+                }
+            }
+        )
+        const updatedUser = await User.findOne({_id: id})
+        console.log('updateUser>', updatedUser.data)
+
+        if (updatedUser) {
+            return updatedUser
+        } else {
+            return Promise.reject('wrong updated id');
+        }
+    } catch(err) {
+        return Promise.reject('user not updated', err );
+    }
+}
+
 module.exports = {
     login,
     registrate,
     updateUser,
-    deleteUser
+    deleteUser,
+    updateData
 };

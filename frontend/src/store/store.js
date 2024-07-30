@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia';
 import  defaultData  from './utils.js';
-import  { ref }  from 'vue';
+import  { saveChartsData }  from '../api/index.js'
 
 const data = new defaultData();
 
 export const useStore = defineStore('arrdays', {
     state: () => ({
-      arrDays: data.setData(),
-      
+        currUser: false,
+        arrDays: data.setData(),
+            
     }),
   
     actions: {
@@ -23,6 +24,13 @@ export const useStore = defineStore('arrdays', {
             this.step = chart.step
             return chart
         }, 
+        async saveChart(){
+            const save = await saveChartsData(this.arrDays)
+            return save
+        },
+        setCurrUser(bool){
+            this.currUser = bool
+        }
        
     },
     getters: {
@@ -33,7 +41,10 @@ export const useStore = defineStore('arrdays', {
                 smallChart: chart,
                 chart: chart
             }
-       },
+        },
+        getCurrUser(){
+            return this.currUser
+       }
 
     },
 });

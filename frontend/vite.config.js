@@ -8,6 +8,10 @@ export default defineConfig({
       '/login': 'http://localhost:9000',
       '/registrate': 'http://localhost:9000',
       '/logout': 'http://localhost:9000',
+      '/deleteuser': 'http://localhost:9000',
+      '/updateuser': 'http://localhost:9000',
+      '/session': 'http://localhost:9000',
+      '/savechart': 'http://localhost:9000',
     },
   },
   build: {

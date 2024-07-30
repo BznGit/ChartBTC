@@ -1,5 +1,23 @@
 const authService = require('../service/auth');
 
+async function checkSession(req, res) {
+    try {
+        if(req.session.user){
+
+            res.status(204);  
+            res.send()
+        } else {
+
+            res.status(401);
+            res.send()
+        }
+
+    } catch(err) {
+        console.error(err);
+        res.status(401).json(err);
+    }
+}
+
 async function login(req, res) {
     const { email, password } = req.body;
     // perform payload validation
@@ -21,6 +39,7 @@ async function login(req, res) {
         res.status(200);
         const obj = {
             name : user.name,
+            email : user.email,
             data: user.data
         }
         res.json(obj)   
@@ -67,6 +86,7 @@ async function registrate(req, res) {
         res.status(200);
         const obj = {
             name : newUser.name,
+            email: newUser.email,
             data: newUser.data
         }
         res.json(obj)
@@ -77,12 +97,14 @@ async function registrate(req, res) {
 }
 
 async function updateUser(req, res) {
-    const { email, passwordIn, nameIn } = req.body;
+    const { email, password, name } = req.body;
     try {
         if(req.session.user){
-            const updatedUser = await authService.updateUser(req.session.user.id, email, passwordIn, nameIn);
+            const updatedUser = await authService.updateUser(req.session.user.id, email, password, name);
+           
             const obj = {
                 name : updatedUser.name,
+                email: updatedUser.email,
                 data: updatedUser.data
             }
             res.json(obj)
@@ -104,7 +126,7 @@ async function deleteUser(req, res) {
             const deleted = await authService.deleteUser(req.session.user.id);
             if(deleted){
                 req.session.destroy(()=>{});
-                res.send(deleted)
+                res.send('deleted')
                 res.status(204);  
             } else {
                 res.send('you not deleted')
@@ -122,10 +144,35 @@ async function deleteUser(req, res) {
     }
 }
 
+async function saveChart(req, res) {
+    const arr= req.body;
+
+    try {
+        if(req.session.user){
+            const updatedUser = await authService.updateData(req.session.user.id, arr);
+            if(updatedUser){
+                res.send('saved')
+                res.status(204);  
+            }
+
+        } else {
+            res.send('not updateted')
+            res.status(204);
+        }
+
+    } catch(err) {
+        console.error(err);
+        res.status(401).json(err);
+    }
+}
+
 module.exports = {
     login,
     logout,
     registrate,
     updateUser,
-    deleteUser
+    deleteUser,
+    checkSession,
+    saveChart
+    
 };
