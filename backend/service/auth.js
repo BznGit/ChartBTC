@@ -5,7 +5,7 @@ const User = require('../db/models/user');
 async function login(email, passwordIn) {
     try {
         const user = await User.findOne({email: email })
-        console.log(user)
+       // console.log(user)
      
         const match = await bcrypt.compare( passwordIn, user.password);
         if (match) {
@@ -21,8 +21,8 @@ async function login(email, passwordIn) {
 async function registrate(email, password, name) {
     try {
         const user = await User.findOne({ email: email })
-        console.log('new>>', email, password, name)
-        console.log('user>>', user)
+       // console.log('new>>', email, password, name)
+       // console.log('user>>', user)
         if (!user) {
             console.log('set')
             
@@ -44,18 +44,18 @@ async function registrate(email, password, name) {
 
 async function updateUser(id, email, password, name) {
     try {
-        console.log(id, email, password, name)
+       // console.log(id, email, password, name)
         await User.updateOne({_id: id}, 
             {
                $set: {
-                    name: name,
+                    name: name.length==0? 'noname' : name,
                     email: email,
                     password: password
                 }
             }
         )
         const updatedUser = await User.findOne({_id: id})
-        console.log('updateUser>', updatedUser)
+       // console.log('updateUser>', updatedUser)
 
         if (updatedUser) {
             return updatedUser
@@ -92,7 +92,7 @@ async function updateData(id, arr) {
             }
         )
         const updatedUser = await User.findOne({_id: id})
-        console.log('updateUser>', updatedUser.data)
+       //console.log('updateUser>', updatedUser.data)
 
         if (updatedUser) {
             return updatedUser
@@ -104,10 +104,26 @@ async function updateData(id, arr) {
     }
 }
 
+async function getData(id) {
+    try {
+        const user = await User.findOne({_id: id})
+       // console.log(user)
+
+        if (user.data) {
+            return user.data
+        } else {
+            return Promise.reject('not data');
+        }
+    } catch(err) {
+        return Promise.reject('user not found');
+    }
+}
+
 module.exports = {
     login,
     registrate,
     updateUser,
     deleteUser,
-    updateData
+    updateData,
+    getData
 };

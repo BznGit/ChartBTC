@@ -82,7 +82,10 @@
       if(sessionStorage.name){
         authStat.value = 'Logout';
         name.value = sessionStorage.name;
+        const data = await getChartsData();
+        if(data.length != 0) store.setSavedData(data)
         store.setCurrUser(true)
+        console.log('Header mounted')
       }
     }
   }
@@ -108,8 +111,9 @@
         name.value = null;
         sessionStorage.removeItem('name');
         sessionStorage.removeItem('email');
-         store.setCurrUser(false)
+        store.setCurrUser(false)
         logoutOpen.value = false
+        location.reload()
       }
     } 
   }
@@ -131,7 +135,7 @@
   }
 
 // Login handler -------------------------------------------------
-import { loginUser } from '../api/index'
+import { loginUser, getChartsData } from '../api/index';
 
 let emailUser = ref()
 let passwordUser = ref()
@@ -147,7 +151,10 @@ async function letLogin(){
     name.value = user.name;
     sessionStorage.setItem('name', user.name); 
     sessionStorage.setItem('email', user.email); 
+    const data = await getChartsData();
+    if(data.length != 0) store.setSavedData(data)
     store.setCurrUser(true)
+    
     closeLogin();
   }
 }
@@ -171,6 +178,8 @@ async function letReg(){
     name.value = user.name;
     sessionStorage.setItem('name', user.name); 
     sessionStorage.setItem('email', user.email); 
+    const data = await getChartsData();
+    if(data.length != 0) store.setSavedData(data)
     store.setCurrUser(true)
     closeLogin();
     closeReg(); 
@@ -214,6 +223,8 @@ async function letUpdate(){
     name.value = user.name;
     sessionStorage.setItem('name', user.name); 
     sessionStorage.setItem('email', user.email); 
+    const data = await getChartsData();
+    if(data.length != 0) store.setSavedData(data)
     store.setCurrUser(true)
     closeUpdate(); 
     closeLogout();

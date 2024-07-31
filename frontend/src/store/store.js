@@ -6,7 +6,7 @@ const data = new defaultData();
 
 export const useStore = defineStore('arrdays', {
     state: () => ({
-        currUser: false,
+        currUser: true,
         arrDays: data.setData(),
             
     }),
@@ -30,6 +30,9 @@ export const useStore = defineStore('arrdays', {
         },
         setCurrUser(bool){
             this.currUser = bool
+        },
+        setSavedData(arr){
+            this.arrDays = arr
         }
        
     },

@@ -12,6 +12,7 @@ export default defineConfig({
       '/updateuser': 'http://localhost:9000',
       '/session': 'http://localhost:9000',
       '/savechart': 'http://localhost:9000',
+      '/getchart': 'http://localhost:9000',
     },
   },
   build: {

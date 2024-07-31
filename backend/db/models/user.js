@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     name: {
         type: String,
-        default: 'nonename'
+        default: 'noname'
     },
     email: {
         type: String,
@@ -29,6 +29,8 @@ userSchema.pre('save',  function(next) {
 
 userSchema.pre('updateOne', async function(next) { 
     const data = this.getUpdate(); 
+
+
 
     if (data['$set'] && data['$set'].password) { 
         // Получаем текущий пользовательский документ

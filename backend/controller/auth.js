@@ -28,9 +28,9 @@ async function login(req, res) {
     }
 
     try {
-        console.log('email, password>>', email, password)
+       // console.log('email, password>>', email, password)
         const user = await authService.login(email, password);
-        console.log('user> ', user)
+       // console.log('user> ', user)
         req.session.user = {
             id: user._id.toString(),
             name: user.name  
@@ -71,7 +71,7 @@ async function registrate(req, res) {
     // perform payload validation
     // in prod, always use a validation library like joi
     // for this tutorial, we only do basic validation
-    console.log('reg>>', email, password, name);
+   // console.log('reg>>', email, password, name);
     if (!email || !password) {
         return res.status(400).json('Bad request params - you need to provide an email and a password');
     }
@@ -82,7 +82,7 @@ async function registrate(req, res) {
             id: newUser._id.toString(),
             name: newUser.name  
         }
-        console.log('req.session.user> ', req.session.user)
+       // console.log('req.session.user> ', req.session.user)
         res.status(200);
         const obj = {
             name : newUser.name,
@@ -166,6 +166,29 @@ async function saveChart(req, res) {
     }
 }
 
+async function getChart(req, res) {
+    try {
+        if(req.session.user){
+            const data = await authService.getData(req.session.user.id);
+            if(data){
+                console.log(data)
+                res.json(data) 
+                res.status(200); 
+            } else {
+                res.send('no charts')
+                res.status(204);
+            }
+  
+        } else {
+            //res.send('you not login for get')
+            res.status(204);
+        }
+
+    } catch(err) {
+        console.error(err);
+        res.status(401).json(err);
+    }
+}
 module.exports = {
     login,
     logout,
@@ -173,6 +196,7 @@ module.exports = {
     updateUser,
     deleteUser,
     checkSession,
-    saveChart
+    saveChart,
+    getChart
     
 };

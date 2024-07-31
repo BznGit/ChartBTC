@@ -40,6 +40,9 @@
   import 'chartjs-plugin-dragdata'
   import zoomPlugin from 'chartjs-plugin-zoom';
   import { useStore } from '../store/store'
+  const store = useStore();
+   import { storeToRefs } from 'pinia'
+  const { arrDays } = storeToRefs(store)
 
   const lineRef = ref()
   const hightlightHashrate = ref() 
@@ -49,7 +52,32 @@
   const dataChanged = ref(false)
   const step = ref()
   let changedPointsArr = ref([])
-  const store = useStore();
+ 
+
+  // Mounted -----------------------------------------------------------------------------------/
+
+  let mainMin = 0;
+  let mainMax = 0;
+
+  onMounted(async () => {
+    let smallChart = smallLineRef.value.chartInstance;
+  
+    smallChart.canvas.onmouseup = ()=>{
+      smallChart.stop();
+      smallChart.update('none')
+      console.log(mainMin, mainMax)
+      startFetch(mainMin, mainMax)
+    }
+
+    const data = store.getChart
+    updateChart(data, true)
+  });
+
+  watch(arrDays,(nw, ol)=>{
+    const data = store.getChart
+    updateChart(data, true)
+  })
+
 
   // Save charts -------------------------------------------------------------------------------/
   async function saveCharts(){
@@ -194,22 +222,6 @@ zoomBox()
     
     zoomBox(chart.config.options.scales.x.min, chart.config.options.scales.x.max) 
   }
-
-  let mainMin = 0;
-  let mainMax = 0;
-
-  onMounted(() => {
-    let smallChart = smallLineRef.value.chartInstance;
-
-    smallChart.canvas.onmouseup = ()=>{
-      smallChart.stop();
-      smallChart.update('none')
-      console.log(mainMin, mainMax)
-     startFetch(mainMin, mainMax)
-    }
-    const data = store.getChart
-    updateChart(data, true)
-  });
 
   function setHightlightHashrate(event){
     console.log('ededdeded')

@@ -5,7 +5,7 @@
 
 <template>
   <Header/>
-  <div class="chart">
+  <div class="chart" @logined="logined">
     <Chart/>
   </div>
 </template>

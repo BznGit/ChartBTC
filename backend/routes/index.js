@@ -17,5 +17,6 @@ router.post('/updateuser', authController.updateUser);
 router.get('/deleteuser', authController.deleteUser);
 
 router.post('/savechart', authController.saveChart);
+router.get('/getchart', authController.getChart);
 
 module.exports = router;

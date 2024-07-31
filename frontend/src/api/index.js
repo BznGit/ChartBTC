@@ -55,6 +55,12 @@ async function saveChartsData(data){
        } 
    }).then(res =>{ return res.text()})
    return save
+}
+
+async function getChartsData(){
+    const chart = await fetch('/getchart').then(res =>{ return res.ok? res.json() : res.text()})
+
+    return chart
 } 
 
 export  {
@@ -64,5 +70,6 @@ export  {
     deleteUser,
     updateUser,
     checkSession,
-    saveChartsData
+    saveChartsData,
+    getChartsData
 } 
