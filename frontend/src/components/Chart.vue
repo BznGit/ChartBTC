@@ -54,6 +54,30 @@
   let changedPointsArr = ref([])
  
 
+  
+  const props = defineProps({
+     idChart: Number,
+     from: String, 
+     data: Object,
+     koef: String
+   })
+
+  
+  let dataset1 =  ref( {
+         label:"Hashrate",
+         borderColor: '#0068dd',
+         backgroundColor: '#0068dd',
+         cubicInterpolationMode: 'monotone',
+         pointRadius: 4,
+         yAxisID: 'leftyaxis',
+         hidden: false,
+         dragData: true,
+         pointHoverRadius: 4,
+         spanGaps: true,
+         data: null,
+         pointBorderColor:[],
+         backgroundColor:[]
+  })
   // Mounted -----------------------------------------------------------------------------------/
 
   let mainMin = 0;
@@ -118,35 +142,11 @@
     }
     console.log(new Date(start), new Date(end))
 
-zoomBox()
+    zoomBox()
     startFetch(start, end)
 
   })
 
-  
-  const props = defineProps({
-     idChart: Number,
-     from: String, 
-     data: Object,
-     koef: String
-   })
-
-  
-  let dataset1 =  ref( {
-         label:"Hashrate",
-         borderColor: '#0068dd',
-         backgroundColor: '#0068dd',
-         cubicInterpolationMode: 'monotone',
-         pointRadius: 4,
-         yAxisID: 'leftyaxis',
-         hidden: false,
-         dragData: true,
-         pointHoverRadius: 4,
-         spanGaps: true,
-         data: null,
-         pointBorderColor:[],
-         backgroundColor:[]
-  })
 
   // ============================= API REQWESTS ============================= //
 

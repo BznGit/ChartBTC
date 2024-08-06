@@ -1,4 +1,4 @@
-const defaultData = class {
+const defaultDataClass = class {
     setData() {
  
         let curr = new Date();
@@ -21,8 +21,31 @@ const defaultData = class {
             }
             this.arrDays.push(obj) // -> to base
         }
-      //  console.log('first')
+        //console.log('first')
         return this.arrDays
+    }
+
+    setDataHist() {
+        let curr = +new Date();
+        let step = new Date();
+        let start = +new Date(1983, 10, 22);
+        // get days array ----------------------------------------------------------------/
+        step.setDate(step.getDate() + 1);
+        this.lengthDaysHist = Math.trunc((curr - start)/(1000*3600*24))+1
+        this.arrDaysHist = [];
+        let delta = (step - curr)
+
+        let y = 100;
+        for (let i = 0; i < this.lengthDaysHist; i++){
+            y += 5 - Math.random() * 10;
+            let obj = {
+                x: new Date((start + delta*i)).setHours(0, 0, 0, 0),
+                y: y
+            }
+            this.arrDaysHist.push(obj) // -> to base
+        }
+        console.log('first', new Date(this.arrDaysHist[this.arrDaysHist.length-1].x))
+        return this.arrDaysHist
     }
 
 
@@ -57,9 +80,7 @@ const defaultData = class {
         }
         let delta = 0
         if(step != 1) delta = Math.trunc(step / 2)
-        console.log('arr>', arr)
-        console.log('arr>', )
-        let end = arrDays.findIndex(item => item.x === arr[arr.length-1].x) + delta
+          let end = arrDays.findIndex(item => item.x === arr[arr.length-1].x) + delta
         if(end > arrDays.length -1) end = arrDays.length - 1
         arr.forEach(elem => {   
             let index = arrDays.findIndex(item => item.x === elem.x) - delta
@@ -90,14 +111,6 @@ const defaultData = class {
         const step = Math.max(1, Math.round((max - min) / 10000000000));
         const data = [];
         let i = 0;
-/*
-        while (i < arrDays.length && arrDays[i].x < min) {
-            i++;
-        }
-        while (i < arrDays.length && arrDays[i].x <= max) {
-            data.push(arrDays[i]);
-            i += step;
-        }*/
 
         for(let i = 0; i < arrDays.length-1; i+=step){
             let sum = 0
@@ -117,4 +130,4 @@ const defaultData = class {
 
 }
 
-export default defaultData;
+export default defaultDataClass;

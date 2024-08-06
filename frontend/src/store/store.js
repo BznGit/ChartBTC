@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia';
-import  defaultData  from './utils.js';
+import  defaultDataClass  from './defaultDataClass.js';
 import  { saveChartsData }  from '../api/index.js'
 
-const data = new defaultData();
+const data = new defaultDataClass();
 
 export const useStore = defineStore('arrdays', {
     state: () => ({
         currUser: true,
         arrDays: data.setData(),
+        arrDaysHist: data.setDataHist()
             
     }),
   
@@ -38,7 +39,7 @@ export const useStore = defineStore('arrdays', {
     },
     getters: {
         getChart(){
-            const {chart, step } = data.getSmallChatData(this.arrDays)
+            const { chart, step } = data.getSmallChatData(this.arrDays)
             this.step = step
             return {
                 smallChart: chart,

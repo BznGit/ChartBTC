@@ -8,6 +8,7 @@ const session = require('../middleware/session')
 router.post('/registrate', authController.registrate);
 router.post('/login', authController.login);
 router.get('/btc-chart', btcController.getBtcCharts);
+
 // all routes that come after this middleware are protected
 // and can only be accessed if the user is logged in
 router.use(authenticate);
