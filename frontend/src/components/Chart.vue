@@ -67,16 +67,25 @@
          label:"Hashrate",
          borderColor: '#0068dd',
          backgroundColor: '#0068dd',
-         cubicInterpolationMode: 'monotone',
-         pointRadius: 4,
+         //cubicInterpolationMode: 'monotone',
+         pointRadius: 1,
          yAxisID: 'leftyaxis',
          hidden: false,
          dragData: true,
-         pointHoverRadius: 4,
+         pointHoverRadius: 1,
          spanGaps: true,
          data: null,
          pointBorderColor:[],
          backgroundColor:[]
+  })
+
+  const chartData = computed(()=>{
+      return {
+      datasets: [
+        dataset1.value,
+      
+      ] 
+    }
   })
   // Mounted -----------------------------------------------------------------------------------/
 
@@ -185,7 +194,7 @@
       dataset1.value.pointBorderColor.push('#0068dd');
       dataset1.value.backgroundColor.push('#0068dd');
     }
-  
+    console.log(data)
     chart.config.options.scales.x.min = data[0].x;
     chart.config.options.scales.x.max = data[data.length - 1].x;
 
@@ -302,6 +311,7 @@
     highlighArrIndex.forEach(index=>{
       chart.data.datasets[0].pointBorderColor[index] = 'red'
       chart.data.datasets[0].backgroundColor[index] = 'red'
+      chart.data.datasets[0].pointRadius= 4
     })
    chart.update()  
 }
@@ -416,7 +426,9 @@
         ctx.fillStyle = 'white';
         ctx.fillText(leftyaxis.getValueForPixel(crosshair[0].startY).toFixed(2), left / 2 , crosshair[0].startY + 7)
         ctx.fillText(new Date(x.getValueForPixel(crosshair[1].startX)).toLocaleDateString(), crosshair[1].startX, bottom + 20)
-
+        ctx.fill()
+        ctx.stroke()
+        ctx.save()
 
         
       }
@@ -486,7 +498,7 @@
       add = -(tooltip.width + 0 ); 
 
     } 
- 
+      ctx.save()
       ctx.beginPath();
       ctx.strokeStyle = '#0068dd';
       ctx.arc(x + add, y, 6, 0, Math.PI / 180 * 360);
@@ -498,7 +510,41 @@
     }
   }
 
-  Chart.register(plugin, crosshairLabel, rectangel, zoomPlugin, ...registerables);
+  const today = {
+    id: 'today',
+    // drawing part
+    afterDatasetsDraw: (chart, args, plugins) => {
+      const {ctx, canvas, chartArea:  {left, right, top, bottom}, scales: {x, leftyaxis}}  = chart;  
+   
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#de7600';
+      ctx.save();
+      ctx.setLineDash([0, 0])
+      ctx.beginPath()
+      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)), bottom);
+      ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)), top);
+      // стпелка
+      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 10, top+2 )
+      ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 80, top +2)
+      // наконечник
+      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 80, top +2)
+      ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 70, top + 5)
+      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 80, top +2)
+      ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 70, top - 1 )
+      ctx.closePath();
+      ctx.textAlign = "center";
+       ctx.textBaseline = 'bottom'
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillStyle = '#de7600';
+      ctx.fillText('прогноз', x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 40, top)
+
+      
+      ctx.stroke();
+      ctx.save();
+    }
+  }
+
+  Chart.register(today, plugin, crosshairLabel, rectangel, zoomPlugin,  ...registerables);
 
   let chartOptions = computed(()=>{
     return {
@@ -734,13 +780,7 @@
    }   
  })
 
-  const chartData = computed(()=>{
-      return {
-      datasets: [
-      dataset1.value
-      ] 
-    }
-  })
+
 ////////////////////// Small Chart /////////////////////////////////
 const smallLineRef = ref()
 const date1 = ref();
@@ -1020,6 +1060,7 @@ let smallChartOptions = computed(()=>{
      plugins: {  
       rectangel: false,
       crosshairLabel: false,
+      today: false,
 
        legend: {
          display:false,

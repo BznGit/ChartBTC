@@ -7,20 +7,21 @@ const data = new defaultDataClass();
 export const useStore = defineStore('arrdays', {
     state: () => ({
         currUser: true,
-        arrDays: data.setData(),
-        arrDaysHist: data.setDataHist()
-            
+        arrDays: [...data.setDataHist(),...data.setData()]  ,
+
+        
     }),
   
     actions: {
         updateData(arr, selected) {
+       
             const chart = data.updateData(arr, this.arrDays, this.step, selected)
             this.$reset()
             this.arrDays = chart
     
         },
         startFetch(min, max){
-        
+  
             const chart = data.fetchData(min, max, this.arrDays)
             this.step = chart.step
             return chart
@@ -39,6 +40,7 @@ export const useStore = defineStore('arrdays', {
     },
     getters: {
         getChart(){
+
             const { chart, step } = data.getSmallChatData(this.arrDays)
             this.step = step
             return {

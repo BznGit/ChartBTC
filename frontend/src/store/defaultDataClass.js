@@ -1,6 +1,7 @@
 const defaultDataClass = class {
+    dalitel = Math.pow(10, 10)
     setData() {
- 
+        
         let curr = new Date();
         let step = new Date();
         let start = new Date();
@@ -13,7 +14,7 @@ const defaultDataClass = class {
         let nw = +step;
         let delta = (nw - cur) 
         let y = 100;
-        for (let i = 0; i < this.lengthDays; i++){
+        for (let i = 1; i < this.lengthDays; i++){
             y += 5 - Math.random() * 10;
             let obj = {
                 x: new Date((+start + delta*i)).setHours(0, 0, 0, 0),
@@ -28,7 +29,7 @@ const defaultDataClass = class {
     setDataHist() {
         let curr = +new Date();
         let step = new Date();
-        let start = +new Date(1983, 10, 22);
+        let start = +new Date(2023, 7, 3 );
         // get days array ----------------------------------------------------------------/
         step.setDate(step.getDate() + 1);
         this.lengthDaysHist = Math.trunc((curr - start)/(1000*3600*24))+1
@@ -51,7 +52,7 @@ const defaultDataClass = class {
 
     fetchData(min, max, arrDays){
 
-        const step = Math.max(1, Math.round((max - min) / 10000000000));
+        const step = Math.max(1, Math.round((max - min) / this.dalitel));
         const data = [];
         let i = 0;
         // -> from base
@@ -81,7 +82,7 @@ const defaultDataClass = class {
         let delta = 0
         if(step != 1) delta = Math.trunc(step / 2)
           let end = arrDays.findIndex(item => item.x === arr[arr.length-1].x) + delta
-        if(end > arrDays.length -1) end = arrDays.length - 1
+        if(end > arrDays.length - 1) end = arrDays.length - 1
         arr.forEach(elem => {   
             let index = arrDays.findIndex(item => item.x === elem.x) - delta
           //  console.log(index, end)
@@ -108,14 +109,14 @@ const defaultDataClass = class {
         let arrDays = JSON.parse(JSON.stringify(dataq)) 
         let min = arrDays[0].x
         let max = arrDays[arrDays.length - 1].x
-        const step = Math.max(1, Math.round((max - min) / 10000000000));
+        const step = Math.max(1, Math.round((max - min) / this.dalitel));
         const data = [];
-        let i = 0;
 
-        for(let i = 0; i < arrDays.length-1; i+=step){
+        for(let i = 0; i < arrDays.length; i+=step){
             let sum = 0
             for(let j=i; j<i+step; j++){
-                  sum += arrDays[j].y
+                if(j<arrDays.length)sum += arrDays[j].y
+                        
             }
             let obj = {
                 x: arrDays[i].x, 
