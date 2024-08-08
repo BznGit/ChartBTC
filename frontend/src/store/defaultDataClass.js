@@ -45,7 +45,7 @@ const defaultDataClass = class {
             }
             this.arrDaysHist.push(obj) // -> to base
         }
-        console.log('first', new Date(this.arrDaysHist[this.arrDaysHist.length-1].x))
+      //  console.log('first', new Date(this.arrDaysHist[this.arrDaysHist.length-1].x))
         return this.arrDaysHist
     }
 
@@ -124,7 +124,7 @@ const defaultDataClass = class {
             }
             data.push(obj)
         }
-        console.log(data)
+       // console.log(data)
       //  console.log('getSmallChatData>>',data.length)
         return {chart: data, step: step}
     }

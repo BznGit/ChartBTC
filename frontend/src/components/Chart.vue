@@ -3,7 +3,7 @@
   <div class="menu">
     <div class="menu-inputs">
       <select v-model="selected">
-     
+  
         <option value='equals'>=</option>
         <option value='increment'>+</option>
         <option value='decrement'>-</option>
@@ -62,20 +62,31 @@
      koef: String
    })
 
-  
+   
+
   let dataset1 =  ref( {
          label:"Hashrate",
-         borderColor: '#0068dd',
-         backgroundColor: '#0068dd',
+         pointBorderColor: [],
+        segment:{
+          borderColor:(ctx)=>{
+           if(ctx.p0.raw.x < new Date().setHours(0,0,0,0)) return 'red'; else return 'green'
+           
+          
+          }
+        },
+         borderWidth: 2,
+         backgroundColor: [],
+         borderDash: [],
          //cubicInterpolationMode: 'monotone',
-         pointRadius: 1,
+         pointRadius: [2],
          yAxisID: 'leftyaxis',
          hidden: false,
          dragData: true,
-         pointHoverRadius: 1,
          spanGaps: true,
          data: null,
-         pointBorderColor:[],
+          pointRadius: 0,
+         pointHoverRadius: 4,
+         pointHitRadius : 8,
          backgroundColor:[]
   })
 
@@ -162,25 +173,36 @@
 
   let k = 0
   function startFetch(min, max){
+    updateData()
     const data = store.startFetch(min, max)
     console.log(data)
     updateChart(data, false)
   }
 
   function updateData(){
-    console.log('changedPointsArr.value', changedPointsArr.value)
-    if(changedPointsArr.value.length == 0) return
-    store.updateData( changedPointsArr.value, selected.value)
-    changedPointsArr.value = []
-    highlighArrIndex = []
     let chart = lineRef.value.chartInstance;
-    chart.update()    
+    if(changedPointsArr.value.length) {
+    console.log('update')
+    highlighArrIndex.forEach(index=>{        
+        chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
+        chart.data.datasets[0].backgroundColor[index] = '#0068dd'
+        chart.data.datasets[0].pointRadius[index]= 1
+        
+      })
+    
+      store.updateData( changedPointsArr.value, selected.value)
+    }
+      changedPointsArr.value = []
+      highlighArrIndex = []
+
+      dataChanged.value =false
+      chart.update()   
   }
 
 
   // Update chart ------------------------------------------------------ 
   function updateChart(allData, def){
-    console.log('updateChart---', allData)
+    //console.log('updateChart---', allData)
     let data = allData.chart;
     let data1 = allData.smallChart;
     step.value = allData.step
@@ -189,12 +211,26 @@
     let smallChart = smallLineRef.value.chartInstance;
    
     chart.data.datasets[0].data = allData.chart;
+    console.log(chart)
+   for(let i=0; i < data.length; i++){
+      
+      if(i<data.length/2) {
 
-    for(let i=0; i < data.length; i++){
-      dataset1.value.pointBorderColor.push('#0068dd');
-      dataset1.value.backgroundColor.push('#0068dd');
+        dataset1.value.pointBorderColor.push('green');
+        dataset1.value.backgroundColor.push('green');
+      //  dataset1.value.segment.borderColor.push('green')
+      
+      }
+      else{
+        dataset1.value.pointBorderColor.push('red');
+        dataset1.value.backgroundColor.push('red');
+       // dataset1.value.segment.borderColor = function(chart.ctx){}
+      } 
     }
-    console.log(data)
+   // console.log( chart.data.datasets[0].segment.borderColor)
+
+
+    console.log(chart.data.datasets[0], chart.data.datasets[0].borderDash)
     chart.config.options.scales.x.min = data[0].x;
     chart.config.options.scales.x.max = data[data.length - 1].x;
 
@@ -307,17 +343,20 @@
       && ((+setData.startY < +item.y &&  +item.y < +setData.endY) || (+setData.startY > +item.y &&  +item.y > +setData.endY)))
         highlighArrIndex.push(index)
     })
-    console.log(highlighArrIndex.length)
+    console.log(chart.data.datasets[0])
+    chart.data.datasets[0]
     highlighArrIndex.forEach(index=>{
       chart.data.datasets[0].pointBorderColor[index] = 'red'
       chart.data.datasets[0].backgroundColor[index] = 'red'
-      chart.data.datasets[0].pointRadius= 4
+      chart.data.datasets[0].pointRadius[index]= 4
+      
     })
    chart.update()  
 }
 
   let setData;
   let rectangelXY;
+  
   const rectangel = {
     id: 'rectangel',
     // drawing part
@@ -344,19 +383,10 @@
     afterInit: (chart, args, plugins) => {
       const {ctx, canvas,  scales: {x, leftyaxis}}  = chart; 
       let i=0
-      canvas.onclick = (e) =>{ 
-        i++
-        if(highlighArrIndex.length>1 || (highlighArrIndex.length==1 && i>1) ||(highlighArrIndex.length==1 && dataChanged.value == true) ){
-           
-           highlighArrIndex.forEach(index=>{
-             chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
-             chart.data.datasets[0].backgroundColor[index] = '#0068dd'
-             highlighArrIndex = []
-           })
-           dataChanged.value =false
-           chart.update()
-           i=0
-         }
+      canvas.ondblclick = (e) =>{ 
+        updateData()
+        console.log('drop')
+
       };
       canvas.oncontextmenu = (e) =>{ 
           e.preventDefault();
@@ -524,19 +554,19 @@
       ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)), bottom);
       ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)), top);
       // стпелка
-      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 10, top+2 )
-      ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 80, top +2)
+      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 10, top + 2)
+      ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 80, top + 2)
       // наконечник
-      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 80, top +2)
+      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 80, top + 2)
       ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 70, top + 5)
-      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 80, top +2)
-      ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 70, top - 1 )
+      ctx.moveTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 80, top + 2)
+      ctx.lineTo(x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 70, top - 1)
       ctx.closePath();
       ctx.textAlign = "center";
        ctx.textBaseline = 'bottom'
       ctx.font = 'bold 13px sans-serif';
       ctx.fillStyle = '#de7600';
-      ctx.fillText('прогноз', x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 40, top)
+      ctx.fillText('прогноз', x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 40, top + 2)
 
       
       ctx.stroke();
@@ -567,10 +597,13 @@
         },
         onHover: function(e) {
             const point = e.chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false)
-            
+
             if (point.length){
-              e.native.target.style.cursor = 'grab';
-              point[0].element.options.radius = 4
+              e.native.target.style.cursor = 'grab' 
+     
+                point[0].element.options.radius = 4
+    
+ 
             } 
             else {
               e.native.target.style.cursor = 'crosshair'
@@ -628,6 +661,7 @@
             let smallChart = smallLineRef.value.chartInstance;
             chart.data.datasets[datasetIndex].pointBorderColor[index] = 'red'
             chart.data.datasets[datasetIndex].backgroundColor[index] = 'red'
+            chart.data.datasets[datasetIndex].pointRadius[index] = 4
             // let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index].x)
             // changedPointsArr.value.push(smallChart.data.datasets[datasetIndex].data[indexNear])
             console.log('drag start!')
@@ -720,7 +754,7 @@
           onDragEnd: function (e, datasetIndex, index, value) {
             console.log('drag end!')
           
-            updateData()
+          //  updateData()
 
           },
         },

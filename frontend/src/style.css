@@ -145,12 +145,14 @@ h1 {
 .menu{
   display: flex;
   justify-content: space-between;
-
+  margin-bottom: 20px;
  
 }
 .menu-inputs{
+  align-items: center;
   margin-left: 50px;
   height: 15px;
+
 }
 .menu input {
   width: 50px;
