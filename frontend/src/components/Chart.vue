@@ -26,7 +26,7 @@
   </div>
   <LineChart ref="lineRef" :chartData="chartData" :options="chartOptions"  />
   <LineChart class= "smallChart"  ref="smallLineRef" :chartData="smallChartData" :options="smallChartOptions"  />
-  <span>{{ date1 }} - {{ date2 }}</span>
+  <span class="period">{{ date1 }} - {{ date2 }}</span>
   <div class="button save" v-if="store.getCurrUser" @click="saveCharts">
     <span>Save</span>
   </div>
@@ -554,7 +554,7 @@
       ctx.textAlign = "center";
        ctx.textBaseline = 'bottom'
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillStyle = '#de7600';
+      ctx.fillStyle = 'de7600#';
       ctx.fillText('прогноз', x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 40, top + 2)
 
       
@@ -1143,6 +1143,10 @@ let smallChartOptions = computed(()=>{
 <style scoped>
 .smallChart{
   height: 100px;
+}
+.period{
+  color: #de7600;
+  font-weight: bolder;
 }
 </style>
 
