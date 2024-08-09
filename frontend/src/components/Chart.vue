@@ -554,7 +554,7 @@
       ctx.textAlign = "center";
        ctx.textBaseline = 'bottom'
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillStyle = 'de7600#';
+      ctx.fillStyle = '#de7600';
       ctx.fillText('прогноз', x.getPixelForValue(new Date().setHours(0, 0, 0, 0)) + 40, top + 2)
 
       
