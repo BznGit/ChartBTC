@@ -14,7 +14,7 @@ const defaultDataClass = class {
         let nw = +step;
         let delta = (nw - cur) 
         let y = 100;
-        for (let i = 1; i < this.lengthDays; i++){
+        for (let i = 0; i < this.lengthDays; i++){
             y += 5 - Math.random() * 10;
             let obj = {
                 x: new Date((+start + delta*i)).setHours(0, 0, 0, 0),

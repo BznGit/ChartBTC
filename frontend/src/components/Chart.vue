@@ -66,25 +66,24 @@
 
   let dataset1 =  ref( {
          label:"Hashrate",
-         pointBorderColor: [],
-        segment:{
-          borderColor:(ctx)=>{
-           if(ctx.p0.raw.x < new Date().setHours(0,0,0,0)) return 'red'; else return 'green'
-           
-          
-          }
+         pointBorderColor: '#06b862',
+          segment:{
+          borderDash:(ctx)=>{
+           if(ctx.p0.raw.x < new Date().setHours(0,0,0,0)) return [0, 0]; else return [5, 5]
+          },
+
         },
-         borderWidth: 2,
-         backgroundColor: [],
-         borderDash: [],
-         //cubicInterpolationMode: 'monotone',
-         pointRadius: [2],
-         yAxisID: 'leftyaxis',
-         hidden: false,
-         dragData: true,
-         spanGaps: true,
-         data: null,
-          pointRadius: 0,
+        borderColor: '#06b862',
+        borderWidth: 2,
+        backgroundColor: [],
+        borderDash: [],
+        //cubicInterpolationMode: 'monotone',
+        pointRadius: [],
+        yAxisID: 'leftyaxis',
+        hidden: false,
+        dragData: true,
+        spanGaps: true,
+        data: null,
          pointHoverRadius: 4,
          pointHitRadius : 8,
          backgroundColor:[]
@@ -173,27 +172,29 @@
 
   let k = 0
   function startFetch(min, max){
-    updateData()
+  
     const data = store.startFetch(min, max)
+    updateData()
     console.log(data)
     updateChart(data, false)
   }
 
   function updateData(){
     let chart = lineRef.value.chartInstance;
-    if(changedPointsArr.value.length) {
-    console.log('update')
-    highlighArrIndex.forEach(index=>{        
-        chart.data.datasets[0].pointBorderColor[index] = '#0068dd'
-        chart.data.datasets[0].backgroundColor[index] = '#0068dd'
-        chart.data.datasets[0].pointRadius[index]= 1
+    console.log('update', highlighArrIndex)
+    if(highlighArrIndex.length) {
+      highlighArrIndex.forEach(index=>{        
+        chart.data.datasets[0].backgroundColor[index] = '#06b862'
+        chart.data.datasets[0].pointRadius[index]= 0
         
       })
-    
-      store.updateData( changedPointsArr.value, selected.value)
-    }
-      changedPointsArr.value = []
       highlighArrIndex = []
+    }
+    if(changedPointsArr.value.length) {
+      store.updateData( changedPointsArr.value, selected.value) 
+      changedPointsArr.value = []
+    }
+   
 
       dataChanged.value =false
       chart.update()   
@@ -211,25 +212,14 @@
     let smallChart = smallLineRef.value.chartInstance;
    
     chart.data.datasets[0].data = allData.chart;
-    console.log(chart)
-   for(let i=0; i < data.length; i++){
-      
-      if(i<data.length/2) {
-
-        dataset1.value.pointBorderColor.push('green');
-        dataset1.value.backgroundColor.push('green');
-      //  dataset1.value.segment.borderColor.push('green')
-      
-      }
-      else{
-        dataset1.value.pointBorderColor.push('red');
-        dataset1.value.backgroundColor.push('red');
-       // dataset1.value.segment.borderColor = function(chart.ctx){}
-      } 
+    
+   for(let i=0; i < data.length; i++){      
+    dataset1.value.pointRadius.push(0);
+    if(data[i].x < new Date().setHours(0,0,0,0)){
+      dataset1.value.backgroundColor.push('#06b862');
     }
-   // console.log( chart.data.datasets[0].segment.borderColor)
-
-
+  }
+    console.log(chart)
     console.log(chart.data.datasets[0], chart.data.datasets[0].borderDash)
     chart.config.options.scales.x.min = data[0].x;
     chart.config.options.scales.x.max = data[data.length - 1].x;
@@ -344,9 +334,8 @@
         highlighArrIndex.push(index)
     })
     console.log(chart.data.datasets[0])
-    chart.data.datasets[0]
+
     highlighArrIndex.forEach(index=>{
-      chart.data.datasets[0].pointBorderColor[index] = 'red'
       chart.data.datasets[0].backgroundColor[index] = 'red'
       chart.data.datasets[0].pointRadius[index]= 4
       
@@ -530,7 +519,7 @@
     } 
       ctx.save()
       ctx.beginPath();
-      ctx.strokeStyle = '#0068dd';
+      ctx.strokeStyle = '#06b862';
       ctx.arc(x + add, y, 6, 0, Math.PI / 180 * 360);
       //ctx.fillStyle = "red";
     
@@ -579,7 +568,7 @@
   let chartOptions = computed(()=>{
     return {
       dragData: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
       layout:{
         padding:{
          left: 0,
@@ -591,19 +580,18 @@
        mode: 'index',
        intersect: true,
      },
-     hover: {
-            intersect: true,
-            mode: 'dataset',
-        },
+  
         onHover: function(e) {
+        
             const point = e.chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false)
 
             if (point.length){
               e.native.target.style.cursor = 'grab' 
      
                 point[0].element.options.radius = 4
-    
- 
+                let chart = lineRef.value.chartInstance;
+                chart.update()
+              
             } 
             else {
               e.native.target.style.cursor = 'crosshair'
@@ -659,7 +647,6 @@
             if (highlighArrIndex.length == 0) highlighArrIndex.push(index)
             let chart = lineRef.value.chartInstance;
             let smallChart = smallLineRef.value.chartInstance;
-            chart.data.datasets[datasetIndex].pointBorderColor[index] = 'red'
             chart.data.datasets[datasetIndex].backgroundColor[index] = 'red'
             chart.data.datasets[datasetIndex].pointRadius[index] = 4
             // let indexNear  = findClosestNumber(smallChart.data.datasets[datasetIndex].data, chart.data.datasets[datasetIndex].data[index].x)
@@ -1136,10 +1123,12 @@ let smallChartOptions = computed(()=>{
   const smallChartData = computed(()=>{
       return {
       datasets: [{
+        borderWidth: 0,
         label:"Hashrate",
-        borderColor: '#0068dd',
-        backgroundColor: '#0068dd',
+        borderColor: '#06b86258',
+        backgroundColor: '#05e5793d',
         cubicInterpolationMode: 'monotone',
+        fill:true,
         pointRadius: 0,
         yAxisID: 'leftyaxis',
         hidden: false,
